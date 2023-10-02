@@ -31,13 +31,10 @@
         <d-title>
             <h1>Using deep learning to classify mental health disorders</h1>
             <p>
-                People often share their thoughts and feelings on social media. In this study, I created a deep learning model to figure out someone's mental state based on what they post online.
+                People often share their thoughts and feelings on social media posts. Often these posts can give us a clue about their mental health. In this study, I created a deep learning model to figure out if someone is suffering from a particular mental illness based on what they post online.
 
-                I gathered posts from mental health communities on Reddit and analyzed them. By learning from these posts, the model was able to accurately identify if someone's post indicated a specific mental disorder like anxiety, depression, agoraphobia or OCD.
-
-                The model could be really helpful in identifying people who might be struggling with mental illness. Just by looking at their posts, the model can give a clue if someone might need some extra support.
-
-                Overall, this study shows how powerful deep learning can be in understanding mental health and help people who might be going through a tough time.                
+                I gathered posts from mental health communities on reddit and analyzed them. By learning from these posts, the model was able to accurately identify if someone's post indicated a specific mental disorder like anxiety, depression, agoraphobia or OCD.
+                The model could be really helpful in identifying people who might be struggling with mental illness.
             </p>
 
         </d-title>
@@ -55,9 +52,11 @@
                 Data collection
             </h2>
 
-            <p>In this study I collected data from five mental health related subreddits each of which is associated with a specific disorder. I collected anxiety related data from r/anxiety, depression related data from r/depression, agoraphobia related data from r/Agoraphobia, OCD related data from r/OCD and general mental health related data from r/mentalhealth.</p>
+            <p>I collected data from five mental health related subreddits each of which is associated with a specific disorder; anxiety related data from r/anxiety, depression related data from r/depression, agoraphobia related data from r/Agoraphobia, OCD related data from r/OCD and general mental health related data from r/mentalhealth.</p>
 
-            <p>Note that no personally identifiable information was included in the study or stored at any point of time. I used data minimization to discard PII and keep only required data for the purpose of the study. The usernames were pseudonymized to disconnect the data from a reddit user. I also applied data generalization and data masking techniques to further anonymize the data and stored everything in a secure encrypted storage. Overall, the study collected information from 23018 users, who wrote 110237 posts in the five subreddits from January 2021 to January 2023.</p>
+            <p>No personally identifiable information was included in the study or stored at any point of time. I used data minimization to discard PII and keep only required data for the purpose of the study. The usernames were pseudonymized to disconnect the data from a reddit user and stored everything in a secure encrypted storage in PostgreSQL. Overall, the study collected information from 23018 users, who wrote 110237 posts in the five subreddits from January 2021 to January 2023.</p>
+
+            <p>I split the dataset into 80% training and 10% validation and 10% testing sets.</p>
 
             <h2>
                 Data processing
@@ -78,93 +77,73 @@
 
             <h2>Classification method</h2>
 
-            <p>The primary hypothesis in this study is that, individuals who experience a particular mental health disorder tend to seek solace and support by posting on a corresponding subreddit. Consequently, all our data is already labelled into 4 distinct classes namely anxiety, depression, agoraphobia and OCD. I observed there are cases where a user suffers from multiple mental health problems, such as simultaneous depression and anxiety and posts on multiple subreddits. However, training the classification model with posts from users exhibiting multiple symptoms would introduce noise into the data and compromise the model's accuracy. To mitigate this challenge, I created four independent binary classification models, each focusing on a single symptom, thus enhancing the overall performance.</p>
+            <p>The primary hypothesis in this study is that, individuals who experience a particular mental health disorder tend to seek solace and support by posting on a corresponding subreddit. Consequently, all data is already labelled into 4 distinct classes namely anxiety, depression, agoraphobia and OCD. I assumed there are cases where a user suffers from multiple mental health problems, such as simultaneous depression and anxiety and posts on multiple subreddits. However, training the classification model with posts from users exhibiting multiple symptoms would introduce noise into the data and compromise the model's accuracy.</p>
 
-            <p>By adopting this approach and utilizing data solely from users who suffer from a specific problem, I have achieved a high degree of accuracy in identifying a user's potential mental state. For instance, to develop a depression detection model, I assigned the depression class label to posts exclusively uploaded in the r/depression subreddit, while the non-depression class encompassed posts from other subreddits.</p>
+            <p>To mitigate this challenge, I created a multi label classifier using DistilBERT to classify a post into four labels, each focusing on a single symptom, thus enhancing the overall performance. The DistilBERT model was proposed in the paper DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter. DistilBERT is a small, fast, cheap and light Transformer model trained by distilling BERT base. It has 40% less parameters than bert-base-uncased, runs 60% faster while preserving over 95% of BERT’s performances as measured on the GLUE language understanding benchmark.</p>
 
-            <p>I split the dataset into 80% training and 10% validation and 10% testing sets. In the feature extraction step, I transformed the preprocessed text data into numerical feature vectors using <code>Word2Vec</code> embeddings to represent words as dense vectors in a continuous space. These word embeddings can capture semantic and contextual relationships between words. The resulting embedding matrix will have a shape of <code>(vocabulary_size, embedding_dim)</code>, where <code>vocabulary_size</code> represents the number of unique words in our dataset, and <code>embedding_dim</code> is the dimensionality of the pre-trained <code>Word2Vec</code> embeddings.</p>
+            <h2>Creating the neural network</h2>
 
-<div class="code-block">
-  <pre>
-    <code>
-      <span class="keyword">import</span> torch
-      <span class="keyword">from</span> gensim.models <span class="keyword">import</span> Word2Vec
+            <ol>
+                <li>We will be creating a neural network with the DistilBERT model followed by a Dropout layer and a Linear layer. They are added for the purpose of Regulariaztion and Classification respectively.</li>
+                <li>In the forward loop, there are 2 outputs from the DistilBERT layer. The second output output_1 also called the pooled output is passed to the DropOut layer and the subsequent output is given to the Linear layer.</li>
+                <li>he number of dimensions for Linear Layer is 4 because that is the total number of categories in which we are looking to classify our model.</li>
+                <li>Final layer outputs is what will be used to calcuate the loss and to determine the accuracy of models prediction.</li>
+            </ol>
 
-      <span class="comment"># Preprocessed text data</span>
-      preprocessed_data = ...
+            <h3>Loss Function and Optimizer</h3>
+            <li>The loss function used will be a combination of Binary Cross Entropy which is implemented as BCELogits Loss in PyTorch</li>
+<pre>
+<code>
+class DistilBERTClass(torch.nn.Module):
+    def __init__(self):
+        super(DistilBERTClass, self).__init__()
+        self.l1 = DistilBertModel.from_pretrained("distilbert-base-uncased")
+        self.pre_classifier = torch.nn.Linear(768, 768)
+        self.dropout = torch.nn.Dropout(0.1)
+        self.classifier = torch.nn.Linear(768, 4)
 
-      <span class="comment"># Train Word2Vec model</span>
-      model = Word2Vec(preprocessed_data, size=100, min_count=1)
+    def forward(self, input_ids, attention_mask, token_type_ids):
+        output_1 = self.l1(input_ids=input_ids, attention_mask=attention_mask)
+        hidden_state = output_1[0]
+        pooler = hidden_state[:, 0]
+        pooler = self.pre_classifier(pooler)
+        pooler = torch.nn.Tanh()(pooler)
+        pooler = self.dropout(pooler)
+        output = self.classifier(pooler)
+        return output
 
-      <span class="comment"># Vocabulary size and embedding dimension</span>
-      vocabulary_size = len(model.wv.vocab)
-      embedding_dim = model.vector_size
-
-      <span class="comment"># Initialize the embedding matrix</span>
-      embedding_matrix = torch.zeros(vocabulary_size, embedding_dim)
-
-      <span class="comment"># Fill the embedding matrix with Word2Vec embeddings</span>
-      <span class="keyword">for</span> i, word <span class="keyword">in</span> enumerate(model.wv.vocab):
-          embedding_matrix[i] = torch.tensor(model.wv[word])
-
-      <span class="comment"># Example usage: converting a sentence to numerical feature vectors</span>
-      sentence = ...
-      numerical_features = torch.tensor([model.wv[word] <span class="keyword">for</span> word <span class="keyword">in</span> sentence])
-    </code>
-  </pre>
-</div>
-
-            <aside markdown="1">
-                This is code, is only for the purpose of understanding the text.
-            </aside>
-            <p>I input these embeddings into a recurrent neural network (RNN) I developed using PyTorch that uses LSTMs in the RNN layer and has a fully connected linear output layer. The number of LSTM layers was set to 3. The LSTM layer processes the input sequence, taking into account the contextual information from previous layer. This allows the model to capture dependencies and patterns in the text data.</p>
-
-<div class="code-block">
-  <pre>
-    <code>
-      <span class="comment">import torch</span>
-      <span class="comment">import torch.nn as nn</span>
-
-      <span class="comment"># Define the LSTM-based RNN model</span>
-      class RNNModel(nn.Module):
-          <span class="directive">def</span> <span class="function">__init__</span>(self, input_size, hidden_size, num_layers, output_size):
-              <span class="directive">super</span>(RNNModel, self).<span class="function">__init__</span>()
-              self.hidden_size = hidden_size
-              self.num_layers = num_layers
-              self.rnn = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
-              self.fc = nn.Linear(hidden_size, output_size)
-
-          <span class="directive">def</span> <span class="function">forward</span>(self, input_seq):
-              h0 = torch.zeros(self.num_layers, input_seq.size(0), self.hidden_size).to(input_seq.device)
-              c0 = torch.zeros(self.num_layers, input_seq.size(0), self.hidden_size).to(input_seq.device)
-              output, _ = self.rnn(input_seq, (h0, c0))
-              output = self.fc(output[:, -1, :])
-              <span class="keyword">return</span> output
-
-      <span class="comment"># Define the input parameters</span>
-      input_size = embedding_dim
-      hidden_size = 256
-      num_layers = 3
-      output_size = 2
-
-      <span class="comment"># Instantiate the RNN model</span>
-      rnn_model = RNNModel(input_size, hidden_size, num_layers, output_size)
-
-      <span class="comment"># Set the input sequence</span>
-      input_seq = torch.randn(1, sequence_length, input_size)
-
-      <span class="comment"># Pass the input sequence through the RNN model</span>
-      output = rnn_model(input_seq)
-
-      <span class="keyword">print</span>(output.shape)
-    </code>
-  </pre>
-</div>
+model = DistilBERTClass()
+model.to(device)
+</code>
+</pre>
 
 
-            <aside markdown="1">
-                This is code, is only for the purpose of understanding the text.
-            </aside>
+            <h3>Fine tuning the model</h3>
+            <li>The dataloader passes data to the model based on the batch size.</li>
+            <li>Subsequent output from the model and the actual category are compared to calculate the loss.</li>
+            <li>Loss value is used to optimize the weights of the neurons in the network.</li>
+<pre>
+<code>
+def train(epoch):
+    model.train()
+    for _, data in tqdm(enumerate(training_loader, 0)):
+        ids = data['ids'].to(device, dtype=torch.long)
+        mask = data['mask'].to(device, dtype=torch.long)
+        token_type_ids = data['token_type_ids'].to(device, dtype=torch.long)
+        targets = data['targets'].to(device, dtype=torch.float)
+
+        outputs = model(ids, mask, token_type_ids)
+
+        optimizer.zero_grad()
+        loss = loss_fn(outputs, targets)
+        if _ % 5000 == 0:
+            print(f'Epoch: {epoch}, Loss: {loss.item()}')
+
+        loss.backward()
+        optimizer.step()
+</code>
+</pre>
+
             <h2>
                 Results
             </h2>
@@ -173,7 +152,7 @@
 
             <table>
                 <tr> 
-                    <th>Subreddit</th> <th>Class</th> <th>RNN Accuracy (%)</th> 
+                    <th>Subreddit</th> <th>Class</th> <th>Model Accuracy (%)</th> 
                 </tr>
                 
                 <tr> 
@@ -210,17 +189,14 @@
             </table>
 
             <figcaption>
-                    Table-1: RNN Model Accuracy
+                    Table-1: Model Accuracy
             </figcaption>
 
             </br>
 
-            <p>The implications of this research are significant. By using deep learning techniques and natural language processing methods, we can effectively identify users who may be experiencing mental health issues based on their online posts. Moreover, this research indicates that the field of mental illness detection through social media is a promising area for further exploration. By leveraging the power of social media platforms, we can create spaces where individuals affected by mental disorders can interact and find support. This has the potential to address the challenges of stigma, accessibility, and reluctance to seek in-person assistance.</p>
 
-            <p>In conclusion, the study demonstrates the effectiveness of deep learning and natural language processing in detecting potential mental illness from online posts. By embracing these approaches and utilizing online platforms, we can proactively identify and support individuals in need of mental health services.</p>
-
-            <h4>Important note about the data</h4>
-            <p>After the completion of the training process and the acquisition of the model's weights, all data utilized for the purposes of this study has been expunged.</p>
+            <h2>Conclusion</h2>
+            <p>The implications of this research are significant. By using deep learning techniques and natural language processing methods, we can effectively identify users who may be experiencing mental health issues based on their online posts. Moreover, this research indicates that the field of mental illness detection through social media is a promising area for further exploration. By leveraging the power of social media platforms, we can create spaces where individuals affected by mental disorders can interact and find support.</p>
         
         </d-article>
         
