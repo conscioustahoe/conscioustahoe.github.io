@@ -190,8 +190,6 @@ dt-header .nav a {
   text-transform: uppercase;
 }
 
-/**/ /**/
-
 .l-body,
 .l-body-outset,
 .l-page,
@@ -203,26 +201,7 @@ dt-article > p,
 dt-article > h1,
 dt-article > h2,
 dt-article > h3,
-dt-article > h4,
-dt-article > figure,
-dt-article > table,
-dt-article > ol,
-dt-article > ul,
-dt-article > dt-byline,
-dt-article > dt-math,
-dt-article > dt-code,
-dt-article section > div,
-dt-article section > p,
-dt-article section > h1,
-dt-article section > h2,
-dt-article section > h3,
-dt-article section > h4,
-dt-article section > figure,
-dt-article section > table,
-dt-article section > ol,
-dt-article section > ul,
-dt-article section > dt-byline,
-dt-article section > dt-code {
+dt-article > h4 {
   width: auto;
   margin: 0 24px;
   box-sizing: border-box;
@@ -241,24 +220,6 @@ dt-article section > dt-code {
   dt-article > h2,
   dt-article > h3,
   dt-article > h4,
-  dt-article > figure,
-  dt-article > table,
-  dt-article > ol,
-  dt-article > ul,
-  dt-article > dt-byline,
-  dt-article > dt-math,
-  dt-article > dt-code,
-  dt-article section > div,
-  dt-article section > p,
-  dt-article section > h1,
-  dt-article section > h2,
-  dt-article section > h3,
-  dt-article section > h4,
-  dt-article section > figure,
-  dt-article section > table,
-  dt-article section > ol,
-  dt-article section > ul,
-  dt-article section > dt-byline,
   dt-article section > dt-code {
     margin: 0 72px;
   }
@@ -270,45 +231,9 @@ dt-article section > dt-code {
   dt-article > p,
   dt-article > h2,
   dt-article > h3,
-  dt-article > h4,
-  dt-article > figure,
-  dt-article > table,
-  dt-article > ol,
-  dt-article > ul,
-  dt-article > dt-byline,
-  dt-article > dt-math,
-  dt-article > dt-code,
-  dt-article section > div,
-  dt-article section > p,
-  dt-article section > h2,
-  dt-article section > h3,
-  dt-article section > h4,
-  dt-article section > figure,
-  dt-article section > table,
-  dt-article section > ol,
-  dt-article section > ul,
-  dt-article section > dt-byline,
-  dt-article section > dt-code {
+  dt-article > h4, {
     margin-left: calc(50% - 492px / 2);
     width: 648px;
-  }
-
-  .l-body-outset,
-  dt-article .l-body-outset {
-    margin-left: calc(50% - 492px / 2 - 48px/2);
-    width: calc(648px + 48px);
-  }
-
-  .l-middle,
-  dt-article .l-middle {
-    width: 816px;
-    margin: 0 auto;
-  }
-
-  .l-middle-outset,
-  dt-article .l-middle-outset {
-    width: calc(816px + 48px);
-    margin: 0 auto;
   }
 
   dt-article > h1,
@@ -533,26 +458,7 @@ dt-article > p,
 dt-article > h1,
 dt-article > h2,
 dt-article > h3,
-dt-article > h4,
-dt-article > figure,
-dt-article > table,
-dt-article > ol,
-dt-article > ul,
-dt-article > dt-byline,
-dt-article > dt-math,
-dt-article > dt-code,
-dt-article section > div,
-dt-article section > p,
-dt-article section > h1,
-dt-article section > h2,
-dt-article section > h3,
-dt-article section > h4,
-dt-article section > figure,
-dt-article section > table,
-dt-article section > ol,
-dt-article section > ul,
-dt-article section > dt-byline,
-dt-article section > dt-code {
+dt-article > h4 {
   width: auto;
   margin-left: 24px;
   margin-right: 24px;
@@ -565,26 +471,7 @@ dt-article section > dt-code {
   dt-article > h1,
   dt-article > h2,
   dt-article > h3,
-  dt-article > h4,
-  dt-article > figure,
-  dt-article > table,
-  dt-article > ol,
-  dt-article > ul,
-  dt-article > dt-byline,
-  dt-article > dt-math,
-  dt-article > dt-code,
-  dt-article section > div,
-  dt-article section > p,
-  dt-article section > h1,
-  dt-article section > h2,
-  dt-article section > h3,
-  dt-article section > h4,
-  dt-article section > figure,
-  dt-article section > table,
-  dt-article section > ol,
-  dt-article section > ul,
-  dt-article section > dt-byline,
-  dt-article section > dt-code {
+  dt-article > h4 {
     margin-left: 72px;
     margin-right: 72px;
   }
@@ -596,120 +483,7 @@ dt-article section > dt-code {
   dt-article > p,
   dt-article > h2,
   dt-article > h3,
-  dt-article > h4,
-  dt-article > figure,
-  dt-article > table,
-  dt-article > ol,
-  dt-article > ul,
-  dt-article > dt-byline,
-  dt-article > dt-math,
-  dt-article > dt-code,
-  dt-article section > div,
-  dt-article section > p,
-  dt-article section > h2,
-  dt-article section > h3,
-  dt-article section > h4,
-  dt-article section > figure,
-  dt-article section > table,
-  dt-article section > ol,
-  dt-article section > ul,
-  dt-article section > dt-byline,
-  dt-article section > dt-code {
+  dt-article > h4 {
     margin-left: calc(50% - 984px / 2);
     width: 648px;
   }
-  .l-body-outset,
-  dt-article .l-body-outset {
-    margin-left: calc(50% - 984px / 2 - 96px / 2);
-    width: calc(648px + 96px);
-  }
-  .l-middle,
-  dt-article .l-middle {
-    width: 816px;
-    margin-left: calc(50% - 984px / 2);
-    margin-right: auto;
-  }
-  .l-middle-outset,
-  dt-article .l-middle-outset {
-    width: calc(816px + 96px);
-    margin-left: calc(50% - 984px / 2 - 48px);
-    margin-right: auto;
-  }
-  dt-article > h1,
-  dt-article section > h1,
-  .l-page,
-  dt-article .l-page,
-  dt-article.centered .l-page {
-    width: 984px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .l-page-outset,
-  dt-article .l-page-outset,
-  dt-article.centered .l-page-outset {
-    width: 1080px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .l-screen,
-  dt-article .l-screen,
-  dt-article.centered .l-screen {
-    margin-left: auto;
-    margin-right: auto;
-    width: auto;
-  }
-  .l-screen-inset,
-  dt-article .l-screen-inset,
-  dt-article.centered .l-screen-inset {
-    margin-left: 24px;
-    margin-right: 24px;
-    width: auto;
-  }
-  .l-gutter,
-  dt-article .l-gutter {
-    clear: both;
-    float: right;
-    margin-left: 24px;
-    margin-right: calc((100vw - 984px) / 2 + 84px);
-    width: calc((984px - 648px) / 2 - 24px);
-  }
-  .side.l-body,
-  dt-article .side.l-body {
-    clear: both;
-    float: right;
-    margin-left: 48px;
-    margin-right: calc((100vw - 984px + 648px) / 2);
-    width: calc(648px / 2 - 24px - 84px);
-  }
-  .side.l-body-outset,
-  dt-article .side.l-body-outset {
-    clear: both;
-    float: right;
-    margin-left: 48px;
-    margin-right: calc((100vw - 984px + 648px - 48px) / 2);
-    width: calc(648px / 2 - 48px + 24px);
-  }
-  .side.l-middle,
-  dt-article .side.l-middle {
-    clear: both;
-    float: right;
-    width: calc(456px - 84px);
-    margin-left: 48px;
-    margin-right: calc((100vw - 984px) / 2 + 84px);
-  }
-  .side.l-middle-outset,
-  dt-article .side.l-middle-outset {
-    width: calc(456px + 48px);
-    margin-left: calc(50% - 984px / 2);
-    margin-right: calc(50% - 984px / 2);
-  }
-  .side.l-page,
-  dt-article .side.l-page,
-  .side.l-page-outset,
-  dt-article .side.l-page-outset {
-    float: right;
-    width: 480px;
-    margin-left: calc(50% - 984px / 2);
-    margin-right: calc(50% - 984px / 2);
-  }
-}
