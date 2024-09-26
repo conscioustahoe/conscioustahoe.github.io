@@ -129,9 +129,15 @@ body {
   margin: 0;
 }
 
+
 a {
-  color: #004276;
+    text-decoration: none; /* Removes the underline */
+    color: inherit; /* Inherits the color from parent elements */
 }
+
+/*a {
+  color: #004276;
+}*/
 
 figure {
   margin: 0;
@@ -139,6 +145,11 @@ figure {
 
 h1 {
   font-family: Cochin, Georgia, serif;
+}
+
+p {
+  font-family: Open Sans;
+  text-align: justify;
 }
 
 /**/ /**/
