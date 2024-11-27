@@ -207,6 +207,26 @@ dt-header .nav a {
   text-transform: uppercase;
 }
 
+dt-header .nav {
+  display: flex; /* Use flexbox for layout */
+  justify-content: flex-end; /* Align links to the right */
+  flex-wrap: nowrap; /* Prevent wrapping */
+  font-weight: 300;
+}
+
+dt-header .nav a {
+  font-size: 12px;
+  margin-left: 16px; /* Reduce spacing between links */
+  text-transform: uppercase;
+  white-space: nowrap; /* Prevent text from wrapping */
+}
+@media (max-width: 600px) {
+  dt-header .nav a {
+    font-size: 10px; /* Adjust font size for smaller screens */
+    margin-left: 12px; /* Reduce spacing further */
+  }
+}
+
 .l-body,
 .l-body-outset,
 .l-page,
