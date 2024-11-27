@@ -152,12 +152,6 @@ p {
   text-align: justify;
 }
 
-@media (max-width: 600px) {
-    p {
-        text-align: left;
-    }
-}
-
 /**/ /**/
 
 dt-header {
@@ -197,7 +191,8 @@ dt-header .logo {
   font-size: 18px;
   font-weight: 200;
 }
-dt-header .nav {
+
+/*dt-header .nav {
   float: right;
   font-weight: 300;
 }
@@ -206,6 +201,7 @@ dt-header .nav a {
   margin-left: 24px;
   text-transform: uppercase;
 }
+*/
 
 dt-header .nav {
   display: flex; /* Use flexbox for layout */
