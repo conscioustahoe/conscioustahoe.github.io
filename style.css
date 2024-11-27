@@ -126,18 +126,13 @@ html {
 }
 
 body {
-  margin: 0;
+  margin: 1em;
 }
-
 
 a {
-    text-decoration: none; /* Removes the underline */
-    color: inherit; /* Inherits the color from parent elements */
+    text-decoration: none;
+    color: inherit;
 }
-
-/*a {
-  color: #004276;
-}*/
 
 figure {
   margin: 0;
@@ -152,11 +147,11 @@ p {
   text-align: justify;
 }
 
-/**/ /**/
-
 dt-header {
-  display: block;
-  position: relative;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  white-space: nowrap;
   width: 100%;
   box-sizing: border-box;
   z-index: 2;
@@ -167,32 +162,18 @@ dt-header {
 
 dt-header a {
   font-size: 16px;
-  height: 70px;
   line-height: 60px;
-  text-decoration: none;
+  text-decoration: inherit;
 
-  padding: 22px 0;
 }
 
 @media(min-width: 1080px) {
   dt-header {
-    height: 70px;
+    height: 4em;
   }
-  dt-header a {
-    height: 70px;
-    line-height: 70px;
-    padding: 28px 0;
-  }
-  dt-header .logo {
-  }
-}
 
-dt-header .logo {
-  font-size: 18px;
-  font-weight: 200;
-}
 
-/*dt-header .nav {
+dt-header .nav {
   float: right;
   font-weight: 300;
 }
@@ -201,25 +182,12 @@ dt-header .nav a {
   margin-left: 24px;
   text-transform: uppercase;
 }
-*/
 
-dt-header .nav {
-  display: flex; /* Use flexbox for layout */
-  justify-content: flex-end; /* Align links to the right */
-  flex-wrap: nowrap; /* Prevent wrapping */
-  font-weight: 300;
-}
 
-dt-header .nav a {
-  font-size: 12px;
-  margin-left: 16px; /* Reduce spacing between links */
-  text-transform: uppercase;
-  white-space: nowrap; /* Prevent text from wrapping */
-}
 @media (max-width: 600px) {
   dt-header .nav a {
-    font-size: 10px; /* Adjust font size for smaller screens */
-    margin-left: 12px; /* Reduce spacing further */
+    font-size: 10px;
+    margin-left: 12px;
   }
 }
 
