@@ -152,6 +152,12 @@ p {
   text-align: justify;
 }
 
+@media (max-width: 600px) {
+    p {
+        text-align: left;
+    }
+}
+
 /**/ /**/
 
 dt-header {

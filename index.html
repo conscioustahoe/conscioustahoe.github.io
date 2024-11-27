@@ -28,6 +28,15 @@
         <meta name="twitter:image:width" content="560">
         <meta name="twitter:image:height" content="295">
     </head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZQ5JZWQCZT"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-ZQ5JZWQCZT');
+    </script>    
     <body>
         <dt-header>
             <div class="content l-page">
@@ -37,6 +46,7 @@
                     <a href="https://github.com/conscioustahoe"  target="_blank">GitHub</a>
                     <a href="https://twitter.com/conscioustahoe" target="_blank">Twitter</a>
                     <a href="https://scholar.google.com/citations?user=gwwJpa0AAAAJ&hl=en" target="_blank">Google Scholar</a>
+                    <a href="paper.html">Bookshelf</a>
                 </div>
                 <div></div>
             </div>
@@ -46,20 +56,20 @@
 
             <div class="posts-list l-page">
 
-                <div style="margin-top: 3em;">
-                        <div>
-                           <h2 class="title">
-                                Hey, Ashutosh here 👋🏻
-                            </h2>
-                            <p class="abstract">
-                                I am a deep learning engineer working on foundation models and optimizing CUDA kernels. Part-time at sigmafund, I help build quant research and trading infrastructure, markov models to predict forex market regimes and mid-frequency quant strategies.
-                            </p>
-                        </div>
-                        <!-- <div>
-                            <img src="images/avatar.jpg" style="max-width: 25%; height: auto; display: block;">
-                        </div> -->
-
+                <div style="margin-top: 3em; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <h2 class="title">Hey, Ashutosh here 👋🏻</h2>
+                        <p class="abstract">
+                            I am a deep learning engineer working on foundation models and optimizing CUDA kernels. 
+                            Part-time at sigmafund, I help build quant research and trading infrastructure, 
+                            Markov models to predict forex market regimes and mid-frequency quant strategies.
+                        </p>
+                    </div>
+                    <div style="flex-shrink: 0; margin-left: 1em;">
+                        <img src="images/avatar.jpeg" style="width: 8.5em; height: 11em; border-radius: 45%;">
+                    </div>
                 </div>
+
 
                 <!-- fastdotai papers on accelerated sgds and resnets -->
 
