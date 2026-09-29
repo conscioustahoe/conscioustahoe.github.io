@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block body_class %}post{% endblock %}
+
+{% block content %}
+{%- set writing = get_section(path="writing/_index.md") %}
+{%- set published = [p.relative_path for p in writing.pages] %}
+{%- set all_posts = [...writing.pages, ...[get_page(path="writing/" ~ f) for f in writing.extra.unpublished if ("writing/" ~ f) not in published]] %}
+{%- set series_key = page.extra.series %}
+{%- set series = config.extra.series[series_key] %}
+{%- set posts = [p for p in all_posts if p.extra.series == series_key] | sort(attribute="extra.part") %}
+{%- set next = [p for p in posts if p.extra.part == page.extra.part + 1] | first %}
+
+<nav class="topbar mono">
+  <a class="back" href="{{ get_url(path='/') }}">← {{ config.title }}</a>
+  <span class="muted">{{ series.name }} · Part {{ page.extra.part }} of {{ posts | length }}</span>
+</nav>
+
+<article>
+  <header class="post-header">
+    <h1 class="post-title">{{ page.title }}</h1>
+    <p class="post-meta mono">
+      {%- if page.date %}{{ page.date | date(format="%B %Y") }} · {% endif -%}
+      {{ page.reading_time }} min read
+    </p>
+  </header>
+  <div class="prose post-body">{{ page.content | safe }}</div>
+</article>
+
+{%- if next %}
+<aside class="next">
+  <h2 class="label mono">Next in this series</h2>
+  <div class="next__row">
+    <span class="next__num mono">{{ <pad n={next.extra.part} /> }}</span>
+    <div>
+      {%- if next.extra.status == "published" %}
+      <a class="next__title" href="{{ next.permalink }}">{{ next.title }}</a>
+      {%- else %}
+      <span class="next__title">{{ next.title }}</span>
+      {%- endif %}
+      {%- if next.description %}<p class="next__desc">{{ next.description }}</p>{% endif %}
+    </div>
+  </div>
+</aside>
+{%- endif %}
+{% endblock %}

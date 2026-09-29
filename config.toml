@@ -1,0 +1,34 @@
+base_url = "https://conscioustahoe.github.io"
+title = "Ashu"
+description = "Ashu is a distributed systems engineer building real-time payments infrastructure at Root. Notes on durable workflows, deployments, API design and serving open models."
+default_language = "en"
+
+compile_sass = false
+build_search_index = false
+generate_feeds = false
+
+[markdown]
+smart_punctuation = true
+
+[extra]
+handle = "conscioustahoe"
+
+# Footer links. Leave a value empty to hide that link.
+github = "https://github.com/conscioustahoe"
+scholar = "https://scholar.google.com/citations?user=gwwJpa0AAAAJ"
+linkedin = "" # TODO: add LinkedIn profile URL
+email = "ashutoshnarang80@gmail.com"
+
+# Series shown under Writing on the home page, in this order.
+# Posts join a series by setting `extra.series` to one of these keys.
+series_order = ["distributed-systems", "building-weft"]
+
+[extra.series.distributed-systems]
+name = "Distributed systems notes"
+description = "Durable workflows, deployments and API design, worked through on a made-up payouts company."
+# If `label` is omitted, the label is "N parts".
+
+[extra.series.building-weft]
+name = "Building Weft"
+label = "build log"
+description = "Notes from building a multi-tenant training and serving platform, one block at a time."

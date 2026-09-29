@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {%- set page_title = config.title %}
+  {%- set page_description = config.description %}
+  {%- set page_url = config.base_url ~ "/" %}
+  {%- set og_type = "website" %}
+  {%- if page %}
+    {%- set page_title = page.title ~ " · " ~ config.title %}
+    {%- set page_description = page.description or config.description %}
+    {%- set page_url = page.permalink %}
+    {%- if page.extra.series %}{% set og_type = "article" %}{% endif %}
+  {%- endif %}
+  <title>{{ page_title }}</title>
+  <meta name="description" content="{{ page_description }}">
+  <meta name="author" content="{{ config.title }}">
+  <link rel="canonical" href="{{ page_url }}">
+  <meta property="og:type" content="{{ og_type }}">
+  <meta property="og:site_name" content="{{ config.title }}">
+  <meta property="og:title" content="{{ page_title }}">
+  <meta property="og:description" content="{{ page_description }}">
+  <meta property="og:url" content="{{ page_url }}">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{ page_title }}">
+  <meta name="twitter:description" content="{{ page_description }}">
+  {%- if page and page.date %}
+  <meta property="article:published_time" content="{{ page.date }}">
+  {%- endif %}
+  <meta name="color-scheme" content="light dark">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+  <link rel="stylesheet" href="{{ get_url(path='style.css', cachebust=true) }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <main class="column">
+    {% block content %}{% endblock %}
+    <footer class="footer">
+      {%- if config.extra.github %}<a href="{{ config.extra.github }}">GitHub</a>{% endif %}
+      {%- if config.extra.scholar %}<a href="{{ config.extra.scholar }}">Scholar</a>{% endif %}
+      {%- if config.extra.linkedin %}<a href="{{ config.extra.linkedin }}">LinkedIn</a>{% endif %}
+      {%- if config.extra.email %}<a href="mailto:{{ config.extra.email }}">Email</a>{% endif %}
+    </footer>
+  </main>
+</body>
+</html>

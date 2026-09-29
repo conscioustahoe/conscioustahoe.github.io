@@ -1,0 +1,16 @@
+{#- Two-digit part number: 1 -> 01. -#}
+{% component pad(n: integer) %}{% if n < 10 %}0{% endif %}{{ n }}{% endcomponent pad %}
+
+{#- One row in a series list: number, title (linked once published), status or date. -#}
+{% component post_row(post) %}
+<li class="row row--post">
+  <span class="row__num mono">{{ <pad n={post.extra.part} /> }}</span>
+  {%- if post.extra.status == "published" %}
+  <a class="row__main" href="{{ post.permalink }}">{{ post.title }}</a>
+  <span class="row__aside mono">{{ post.date | date(format="%b %Y") }}</span>
+  {%- else %}
+  <span class="row__main">{{ post.title }}</span>
+  <span class="row__aside mono{% if post.extra.status == 'drafting' %} is-drafting{% endif %}">{{ post.extra.status | capitalize }}</span>
+  {%- endif %}
+</li>
+{% endcomponent post_row %}

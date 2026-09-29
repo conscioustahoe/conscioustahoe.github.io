@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block body_class %}home{% endblock %}
+
+{% block content %}
+<nav class="topbar mono">
+  <a class="back" href="{{ get_url(path='/') }}">← {{ config.title }}</a>
+</nav>
+
+<header class="intro">
+  <h1 class="name">{{ page.title }}</h1>
+  <div class="prose">{{ page.content | safe }}</div>
+</header>
+
+<ul class="rows">
+  {%- for book in page.extra.books %}
+  <li class="row row--post">
+    <span class="row__num mono">{% if loop.index < 10 %}0{% endif %}{{ loop.index }}</span>
+    <a class="row__main" href="{{ book.url }}">{{ book.title }}</a>
+    <span class="row__aside mono">{% if book.favorite %}Favorite{% endif %}</span>
+  </li>
+  {%- endfor %}
+</ul>
+{% endblock %}

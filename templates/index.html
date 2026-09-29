@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block body_class %}home{% endblock %}
+
+{% block content %}
+<header class="intro">
+  <h1 class="name">{{ section.title }}</h1>
+  <div class="prose">{{ section.content | safe }}</div>
+</header>
+
+<section class="block">
+  <h2 class="label mono">Now</h2>
+  <ul class="rows">
+    {%- for item in section.extra.now %}
+    <li class="row row--labeled">
+      <span class="row__label mono">{{ item.label }}</span>
+      <span class="row__main">{{ item.text }}</span>
+    </li>
+    {%- endfor %}
+  </ul>
+</section>
+
+<section class="block">
+  <h2 class="label mono">Writing</h2>
+  {%- set writing = get_section(path="writing/_index.md") %}
+  {%- set published = [p.relative_path for p in writing.pages] %}
+  {%- set all_posts = [...writing.pages, ...[get_page(path="writing/" ~ f) for f in writing.extra.unpublished if ("writing/" ~ f) not in published]] %}
+  {%- for key in config.extra.series_order %}
+  {%- set series = config.extra.series[key] %}
+  {%- set posts = [p for p in all_posts if p.extra.series == key] | sort(attribute="extra.part") %}
+  <div class="series">
+    <p class="series__meta mono">Series {{ loop.index }} · {{ series.label or (posts | length) ~ " parts" }}</p>
+    <h3 class="series__name">{{ series.name }}</h3>
+    <p class="series__desc">{{ series.description }}</p>
+    <ul class="rows">
+      {%- for post in posts %}{{ <post_row post={post} /> }}{% endfor %}
+    </ul>
+  </div>
+  {%- endfor %}
+</section>
+
+<section class="block">
+  <h2 class="label mono">Work</h2>
+  <ul class="rows">
+    {%- for job in section.extra.work %}
+    <li class="row row--labeled">
+      <span class="row__label mono">{{ job.years }}</span>
+      <span class="row__main">{{ job.name }}<span class="muted">, {{ job.role }}</span></span>
+    </li>
+    {%- endfor %}
+  </ul>
+</section>
+
+<section class="block">
+  <h2 class="label mono">Research</h2>
+  <ul class="rows">
+    {%- for item in section.extra.research %}
+    <li class="row row--labeled">
+      <span class="row__label mono">{{ item.label }}</span>
+      <span class="row__main">{{ item.text | markdown(inline=true) | safe }}</span>
+    </li>
+    {%- endfor %}
+  </ul>
+</section>
+{% endblock %}
