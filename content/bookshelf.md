@@ -4,7 +4,7 @@ description = "Books Ashu enjoyed and thinks are worth reading."
 template = "bookshelf.html"
 aliases = ["bookshelf.html"] # old links keep working
 
-# Newest first. `favorite = true` adds a Favorite tag.
+# Shown in this order. `favorite = true` adds a Favorite tag.
 [[extra.books]]
 title = "The Three-Body Problem"
 url = "https://www.goodreads.com/book/show/20518872-the-three-body-problem"
@@ -12,10 +12,15 @@ url = "https://www.goodreads.com/book/show/20518872-the-three-body-problem"
 [[extra.books]]
 title = "The Dark Forest"
 url = "https://www.goodreads.com/book/show/23168817-the-dark-forest"
+favorite = true
 
 [[extra.books]]
 title = "Death's End"
 url = "https://www.goodreads.com/book/show/25451264-death-s-end"
+
+[[extra.books]]
+title = "Dracula"
+url = "https://www.goodreads.com/book/show/17245.Dracula"
 
 [[extra.books]]
 title = "Systems Medicine: Physiological Circuits and the Dynamics of Disease"
@@ -52,6 +57,14 @@ url = "https://www.goodreads.com/book/show/11.The_Hitchhiker_s_Guide_to_the_Gala
 title = "Never Split the Difference"
 url = "https://www.goodreads.com/book/show/123857637-never-split-the-difference"
 favorite = true
+
+[[extra.books]]
+title = "Designing Data-Intensive Applications"
+url = "https://www.goodreads.com/book/show/23463279-designing-data-intensive-applications"
+
+[[extra.books]]
+title = "Programming in C"
+url = "https://www.goodreads.com/book/show/26436.Programming_in_C"
 +++
 
 These are the books I enjoyed and think are worth reading. The ones marked Favorite are absolutely great.
