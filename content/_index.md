@@ -4,6 +4,10 @@ template = "index.html"
 
 # Rows under Now: `label` on the left, `text` beside it.
 [[extra.now]]
+label = "Suvin"
+text = "Coming soon"
+
+[[extra.now]]
 label = "Root"
 text = "Payments platform, durable transfers, public API, a fine-tuned model for bank files"
 
