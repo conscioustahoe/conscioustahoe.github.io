@@ -7,10 +7,6 @@ template = "index.html"
 label = "Root"
 text = "Payments platform, durable transfers, public API, a fine-tuned model for bank files"
 
-[[extra.now]]
-label = "Weft"
-text = "A small Tinker-style platform for fine-tuning and serving open models, built in public"
-
 # Rows under Work. `role` is shown after the name in the muted color.
 [[extra.work]]
 years = "2024 to now"
@@ -41,6 +37,6 @@ label = "Neuromatch"
 text = "Multi-agent reinforcement learning on predators and prey, each trying to survive and grow"
 +++
 
-I'm a distributed systems engineer building real-time payments infrastructure at Root, where I was the first engineer. Before that I was a founding engineer at Gamma (acquired by Palo Alto Networks). In the past I've also done research on reconstructing what people see from brain activity, and co-authored MindEye2 (ICML 2024). Lately I'm building Weft, a small platform for fine-tuning and serving open models.
+I'm a distributed systems engineer building real-time payments infrastructure at Root, where I was the first engineer. Before that I was a founding engineer at Gamma (acquired by Palo Alto Networks). In the past I've also done research on reconstructing what people see from brain activity, and co-authored MindEye2 (ICML 2024). Lately I'm working on Suvin. More on that soon.
 
 Outside of work I boulder and watch a lot of movies. I also keep a [bookshelf](@/bookshelf.md) of what I've been reading.

@@ -21,25 +21,6 @@
 </section>
 
 <section class="block">
-  <h2 class="label mono">Writing</h2>
-  {%- set writing = get_section(path="writing/_index.md") %}
-  {%- set published = [p.relative_path for p in writing.pages] %}
-  {%- set all_posts = [...writing.pages, ...[get_page(path="writing/" ~ f) for f in writing.extra.unpublished if ("writing/" ~ f) not in published]] %}
-  {%- for key in config.extra.series_order %}
-  {%- set series = config.extra.series[key] %}
-  {%- set posts = [p for p in all_posts if p.extra.series == key] | sort(attribute="extra.part") %}
-  <div class="series">
-    <p class="series__meta mono">Series {{ loop.index }} · {{ series.label or (posts | length) ~ " parts" }}</p>
-    <h3 class="series__name">{{ series.name }}</h3>
-    <p class="series__desc">{{ series.description }}</p>
-    <ul class="rows">
-      {%- for post in posts %}{{ <post_row post={post} /> }}{% endfor %}
-    </ul>
-  </div>
-  {%- endfor %}
-</section>
-
-<section class="block">
   <h2 class="label mono">Work</h2>
   <ul class="rows">
     {%- for job in section.extra.work %}

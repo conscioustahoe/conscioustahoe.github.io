@@ -11,7 +11,6 @@
     {%- set page_title = page.title ~ " · " ~ config.title %}
     {%- set page_description = page.description or config.description %}
     {%- set page_url = page.permalink %}
-    {%- if page.extra.series %}{% set og_type = "article" %}{% endif %}
   {%- endif %}
   <title>{{ page_title }}</title>
   <meta name="description" content="{{ page_description }}">
@@ -26,9 +25,6 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="{{ page_title }}">
   <meta name="twitter:description" content="{{ page_description }}">
-  {%- if page and page.date %}
-  <meta property="article:published_time" content="{{ page.date }}">
-  {%- endif %}
   <meta name="color-scheme" content="light dark">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
