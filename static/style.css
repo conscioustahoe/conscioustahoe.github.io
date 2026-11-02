@@ -89,6 +89,7 @@ a:hover { text-decoration-color: currentColor; }
 .row__num { grid-area: num; font-size: 13px; color: var(--muted); }
 .row__label { grid-area: label; font-size: 13px; color: var(--muted); }
 .row__main { grid-area: main; }
+.row__about { display: block; margin-top: 4px; }
 .row__aside { grid-area: aside; font-size: 13px; color: var(--muted); text-align: right; white-space: nowrap; }
 
 /* Top bar */

@@ -3,15 +3,16 @@ title = "Ashu"
 template = "index.html"
 
 # Rows under Work. `role` is shown after the name in the muted color.
-[[extra.work]]
-years = "Now"
-name = "Suvin"
-role = "agents for everything after code is written, running inside the customer's own network"
-
+# `about` replaces `role` with a sentence on its own line below the name.
 [[extra.work]]
 years = "Now"
 name = "Graft"
-role = "post-training 1-bit and ternary language models to recover the tool-calling ability compression destroys"
+about = "Graft post-trains language models compressed from 16-bit to 1-bit and ternary weights using SFT, DPO and GRPO to recover the tool-calling ability that compression costs them."
+
+[[extra.work]]
+years = "Now"
+name = "Suvin"
+about = "Suvin is an agentic platform for everything after code is written (review, testing, deploys, observability and incident fixes) with the orchestrator in the cloud and agents inside the user’s own network, so credentials and context never leave their infrastructure."
 
 [[extra.work]]
 years = "2024 to now"
