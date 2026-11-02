@@ -14,7 +14,7 @@
     {%- for job in section.extra.work %}
     <li class="row row--labeled">
       <span class="row__label mono">{{ job.years }}</span>
-      <span class="row__main">{{ job.name }}{% if job.about %}<span class="row__about muted">{{ job.about }}</span>{% else %}<span class="muted">, {{ job.role }}</span>{% endif %}</span>
+      <span class="row__main">{{ job.name }}<span class="muted">, {{ job.role }}</span></span>
     </li>
     {%- endfor %}
   </ul>
