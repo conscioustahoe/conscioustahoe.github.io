@@ -6,7 +6,7 @@ template = "index.html"
 [[extra.work]]
 years = "Now"
 name = "Suvin"
-role = "coming soon"
+role = "agents for everything after code is written, running inside the customer's own network"
 
 [[extra.work]]
 years = "2024 to now"
@@ -25,6 +25,10 @@ role = "founding engineer (acquired by Palo Alto Networks)"
 
 # Rows under Research. `text` accepts inline Markdown, so it can hold links.
 [[extra.research]]
+label = "Graft"
+text = "Post-training 1-bit and ternary language models to recover the tool-calling ability compression destroys"
+
+[[extra.research]]
 label = "MedARC"
 text = "[MindEye2](https://medarc-ai.github.io/mindeye2/) (ICML 2024), reconstructing images people see from fMRI"
 
@@ -37,6 +41,6 @@ label = "Neuromatch"
 text = "Multi-agent reinforcement learning on predators and prey, each trying to survive and grow"
 +++
 
-I'm a distributed systems engineer building real-time payments infrastructure at Root, where I was the first engineer. Before that I was a founding engineer at Gamma (acquired by Palo Alto Networks). In the past I've also done research on reconstructing what people see from brain activity, and co-authored MindEye2 (ICML 2024). Lately I'm working on Suvin. More on that soon.
+I'm a distributed systems engineer building real-time payments infrastructure at Root, where I was the first engineer. Before that I was a founding engineer at Gamma (acquired by Palo Alto Networks). In the past I've also done research on reconstructing what people see from brain activity, and co-authored MindEye2 (ICML 2024). Lately I'm working on Suvin.
 
 Outside of work I boulder and watch a lot of movies. I also keep a [bookshelf](@/bookshelf.md) of what I've been reading.
