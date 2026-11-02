@@ -6,7 +6,7 @@ template = "index.html"
 [[extra.work]]
 years = "Now"
 name = "Graft"
-role = "post-trains language models compressed from 16-bit to 1-bit and ternary weights using SFT, DPO and GRPO to recover the tool-calling ability that compression costs them"
+role = "post-training language models compressed from 16-bit to 1-bit and ternary weights using SFT, DPO and GRPO to recover the tool-calling ability that compression costs them"
 
 [[extra.work]]
 years = "Now"
