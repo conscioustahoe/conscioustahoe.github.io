@@ -9,6 +9,11 @@ name = "Suvin"
 role = "agents for everything after code is written, running inside the customer's own network"
 
 [[extra.work]]
+years = "Now"
+name = "Graft"
+role = "post-training 1-bit and ternary language models to recover the tool-calling ability compression destroys"
+
+[[extra.work]]
 years = "2024 to now"
 name = "Root"
 role = "founding engineer and engineering lead"
@@ -24,10 +29,6 @@ name = "Gamma"
 role = "founding engineer (acquired by Palo Alto Networks)"
 
 # Rows under Research. `text` accepts inline Markdown, so it can hold links.
-[[extra.research]]
-label = "Graft"
-text = "Post-training 1-bit and ternary language models to recover the tool-calling ability compression destroys"
-
 [[extra.research]]
 label = "MedARC"
 text = "[MindEye2](https://medarc-ai.github.io/mindeye2/) (ICML 2024), reconstructing images people see from fMRI"
