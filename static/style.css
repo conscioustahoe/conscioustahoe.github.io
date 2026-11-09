@@ -211,6 +211,14 @@ svg.fig .nline { fill: var(--muted); font-size: 11.5px; }
 svg.fig .edge { stroke: var(--muted); stroke-width: 1.5; fill: none; }
 svg.fig .edge.dash { stroke-dasharray: 5 4; }
 svg.fig .ahead { fill: var(--muted); }
+svg.fig .colhead { fill: var(--accent); font-size: 11px; letter-spacing: 0.08em; }
+svg.fig .ntitle.sm { font-size: 13px; }
+svg.fig .nline.sm { font-size: 10.5px; }
+svg.fig .nsize { fill: var(--accent); font-size: 10.5px; }
+svg.fig .strongish { fill: var(--text); font-weight: 500; }
+svg.fig .node.verify { fill: color-mix(in srgb, var(--accent) 6%, var(--bg)); stroke: var(--rule); }
+svg.fig .edge.thin { stroke-width: 1; }
+
 svg.fig .elab { fill: var(--muted); font-size: 11px; font-style: italic; }
 
 
