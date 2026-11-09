@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block body_class %}article{% endblock %}
+
+{% block content %}
+<nav class="topbar mono">
+  <a class="back" href="{{ get_url(path='/') }}">← {{ config.title }}</a>
+  {%- if page.extra.repo %}
+  <a class="back" href="{{ page.extra.repo }}">Repository →</a>
+  {%- endif %}
+</nav>
+
+<header class="intro">
+  <h1 class="name">{{ page.title }}</h1>
+  {%- if page.extra.subtitle %}
+  <p class="subtitle muted">{{ page.extra.subtitle }}</p>
+  {%- endif %}
+</header>
+
+<article class="prose article__body">
+  {{ page.content | safe }}
+</article>
+{% endblock %}
