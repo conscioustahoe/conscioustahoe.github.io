@@ -211,6 +211,19 @@ svg.fig .nline { fill: var(--muted); font-size: 11.5px; }
 svg.fig .edge { stroke: var(--muted); stroke-width: 1.5; fill: none; }
 svg.fig .edge.dash { stroke-dasharray: 5 4; }
 svg.fig .ahead { fill: var(--muted); }
+svg.fig .shape { fill: var(--bg); stroke: var(--text); stroke-width: 1.3; }
+svg.fig .dedge { stroke: var(--text); stroke-width: 1.4; fill: none; }
+svg.fig .dthin { stroke: var(--muted); stroke-width: 0.8; stroke-dasharray: 2 2; }
+svg.fig .dhead { fill: var(--text); }
+svg.fig .dtitle { fill: var(--text); font-family: var(--serif); font-size: 15px; }
+svg.fig .dtitle.sm { font-size: 13px; font-weight: 600; }
+svg.fig .dlabel { fill: var(--text); font-family: var(--serif); font-size: 12.5px; }
+svg.fig .dlabel.strong { font-weight: 600; }
+svg.fig .hl { fill: var(--accent); fill-opacity: 0.55; stroke: var(--accent); stroke-width: 1; }
+svg.fig .dedge.dash { stroke-dasharray: 5 4; }
+svg.fig .dmono { fill: var(--text); font-family: var(--mono); font-size: 11px; }
+
+svg.fig .node.design { stroke-dasharray: 5 3; }
 svg.fig .colhead { fill: var(--accent); font-size: 11px; letter-spacing: 0.08em; }
 svg.fig .ntitle.sm { font-size: 13px; }
 svg.fig .nline.sm { font-size: 10.5px; }

@@ -1,26 +1,22 @@
 +++
 title = "Weather Data Lab"
-description = "Notes from taking weather station and radar data from raw public archives to a model, and how the same design works at petabyte scale."
+description = "Learning how raw sensor data becomes something a model can learn from, with four years of California weather stations, radar and a weather model."
 template = "article.html"
 
 [extra]
-subtitle = "Notes from taking weather station and radar data from raw files to a model."
+subtitle = "Learning how raw sensor data becomes something a model can learn from."
 repo = "https://github.com/conscioustahoe/weather-data-lab"
 +++
 
 ## Why I did this
 
-I wanted to learn how raw sensor data becomes something a model can learn from. Reading [Natural General Intelligence](https://naturalgeneralintelligence.ai/#observing-system) and [WeatherBench 2](https://arxiv.org/abs/2308.15560) made weather the obvious place to try because the data is public and messy and it goes all the way up to petabytes.
-
-The essay points out that most AI weather models train on ERA5 rather than on observations. ERA5 is a reconstruction that blends measurements with a physics model and doesn't say which values were measured and which were filled in. WeatherBench 2 is built on that same data stored as Zarr in the cloud and its data guide shows how arrays that size are cut up and read.
+I read Ryan Orbuch's essay [*Natural General Intelligence*](https://naturalgeneralintelligence.ai/#observing-system) about how much data we collect about the Earth. Most of it comes from physical sensors measuring nature and I got curious about how that data becomes something we can learn from. That led me to [WeatherBench 2](https://arxiv.org/abs/2308.15560) and a lot of science and terms I didn't know so I decided to learn it by building something.
 
 ## The goal
 
-I gave myself one dataset to own from end to end and three questions to answer about it.
+I gave myself one dataset to own from end to end. Four years of hourly readings from about 165 California weather stations would go from NOAA's raw public archives to a training-ready table with a quality verdict (pass, suspect or quarantine) on every value. Then I'd find out how often those verdicts are right and whether they actually make a model better.
 
-> Take four years of hourly data from about 165 California weather stations from raw public archives to a training-ready dataset with a quality verdict on every value. How do I read it correctly? How do I know when a value is wrong? Does cleaning it actually make a model better?
-
-When those had answers I wanted to know how the same ideas hold up with a second kind of sensor and with much more data. So I added radar, rebuilt the pipeline in Ray, Spark and Beam and pushed a 27 GB grid through it. Everything ran on a 16 GB laptop and every plot uses real data. The [notebooks](#the-notebooks) have the detail.
+When that worked I added radar as a second and very different sensor and pushed a 27 GB grid of the HRRR weather model through the same pipeline to see what changes with scale. Everything ran on a 16 GB laptop.
 
 ## Getting to know the data
 
@@ -75,36 +71,36 @@ When those had answers I wanted to know how the same ideas hold up with a second
 <text x="232.7" y="304" class="val">190 GB</text>
 <text x="210" y="16" class="tick">data collected per year, log scale</text>
 </svg>
-<figcaption>How much the world's observing systems collect each year, from the Natural General Intelligence essay. The two I used are highlighted.</figcaption>
+<figcaption>How much the world's observing systems collect each year (from the Natural General Intelligence essay). The two I used are highlighted.</figcaption>
 </figure>
 
-The first thing I wanted to understand was what a single weather station actually reports. NOAA keeps every airport report as text files and at first it looks like a clean table. Reading it properly showed an hour can hold several kinds of report taken at different minutes so building an hourly table needs a written rule for which one wins. Most airport thermometers report whole degrees Fahrenheit and that makes the tenths in the Celsius column an artefact of unit conversion. NOAA's own quality flags passed a sensor stuck at −39 °C for most of a month and marked four years of a healthy station as erroneous.
+I started with the smallest stream on that chart. NOAA keeps every airport weather report as text and an hour can hold several of them taken at different minutes so even "the temperature at 2 pm" needs a written rule. NOAA's own quality flags were the bigger surprise. They passed a sensor stuck at −39 °C for most of a month and marked four years of a healthy station as erroneous.
 
-That made me wonder what I could compare a thermometer against. I used HRRR, NOAA's 3 km forecast model. Its "analysis" has already been nudged toward these same station reports and comparing the two would be circular so I used its one-hour forecast instead. Station and model mostly agreed and the places they didn't had physical reasons. Coastal stations ran warm because the model's grid box holds sea and high valleys ran cold because cold air pools there at night.
+That raised the obvious question of what to compare a thermometer against. I used the HRRR weather model's one-hour forecast and not its analysis because the analysis has already been nudged toward these same stations. Where the two disagreed there was usually geography behind it. Coastal stations ran warm because the model's grid box holds sea and high valleys ran cold because cold air pools there at night.
 
-Next I wanted to see how a completely different sensor behaves. Radar is about 300 times bigger than the station data on that chart. A radar file isn't a map but a stack of 360° sweeps at different tilts and the beam climbs as it goes out because the Earth curves away underneath it.
+Radar was the second sensor and about 300 times bigger. Its beam climbs as it goes out because the Earth curves away underneath it. It also hears more than rain.
 
 <figure>
 <img src="/weather-data-lab/radar-kmux.png" alt="Three radar maps around the Bay Area radar during the October 2021 storm: reflectivity, radial velocity and correlation coefficient. A patch south-west of the radar has low correlation coefficient.">
 <figcaption>The Bay Area radar in the October 2021 storm. The patch south-west of the radar looks like light rain on the left and the correlation coefficient on the right shows it's waves on the ocean.</figcaption>
 </figure>
 
-About one in eight echoes on the lowest scan were waves rather than rain even in the middle of a major storm. When I matched four years of radar rain against station rain gauges the beam height explained most of the difference. Radar saw about 90% of the gauge rain where its beam passed low over a station and less than half where it passed more than 2 km up. Some places like Bishop behind the Sierra Nevada get almost no radar rain at all.
+Matching four years of radar rain against station gauges showed how much the beam height matters. Radar saw about 90% of the gauge rain where its beam passed low over a station and less than half where it passed more than 2 km up.
 
 ## Teaching myself to catch bad data
 
-With the data understood the next question was how to tell a wrong value from a strange but real one. A quality check is a classifier and I wanted to measure it like one. Real data has no labels so I measured the two halves separately. For recall I took clean stations and broke them on purpose while keeping an answer key. The faults were the kinds real sensors have: sudden steps, slow drifts, constant biases, stuck values, clocks that were hours off and data that disappears only during storms. For precision I checked 30 real alarms by hand. Every station-hour ends up with a verdict of pass, suspect or quarantine and a quarantine needs two independent kinds of evidence.
+A quality check is a classifier and I wanted to measure it like one. Real data has no labels though. For recall I broke clean stations on purpose and kept an answer key (steps, drifts, biases, stuck values, clocks hours off and gaps only during storms). For precision I checked 30 real alarms by hand.
 
 <figure>
 <img src="/weather-data-lab/susanville.png" alt="Susanville airport temperature against the HRRR model in autumn 2021. The station drops to −39 °C for almost a month while the model shows normal daily cycles.">
 <figcaption>A fault NOAA's checks passed: Susanville airport stuck at −39 °C. Most faults are much quieter than this.</figcaption>
 </figure>
 
-Loud faults like stuck sensors and spikes were easy to catch. Small level shifts were much harder, with a 2 °C step found almost every time and a 0.5 °C step almost never. A clock eight hours off didn't move the average at all while single hours were off by 10 °C and a station could lose 90% of its storms and still look 95% complete. Most of the real false alarms came from a few kinds of weather like coastal heat waves, Santa Ana winds the model timed an hour off and valley fog. Learning those patterns helped more than tuning thresholds. The checks also found four broken sensors that NOAA had passed. Later radar did the same for rain gauges when Travis Air Force Base reported hours of 100 mm during light drizzle and then measured a real storm correctly three days later.
+Loud faults were easy. A 2 °C step was found almost every time and a 0.5 °C step almost never. Most real false alarms were weather (coastal heat waves, Santa Ana winds the model timed an hour off and valley fog) and the checks found four broken sensors NOAA had passed.
 
 ## Does it help a model?
 
-This was the question I cared about most. If the verdicts are right but don't change what a model learns then they don't matter much. I trained a gradient-boosted model that corrects HRRR at each station on several versions of the same training data and tested every version on a clean 2024.
+I trained a gradient-boosted model that corrects HRRR at each station on several versions of the same training data and tested every version on a clean 2024.
 
 | Training data | Error at the broken stations (°C) |
 |---|---|
@@ -115,199 +111,254 @@ This was the question I cared about most. If the verdicts are right but don't ch
 | Broken with the same number of hours removed at random | 1.57 |
 | Broken with shifted stretches repaired | 1.17 |
 
-The model trained on broken data was worse than having no model because it learned each broken station's offset and applied it to 2024. Removing the flagged hours barely helped even though they were the right hours since random removal did nothing at all. Most of the damage came from stations reading a degree or two off for months and an hourly check can't see that. What worked was finding the dates where a station's level shifted and correcting the stretch before it. That brought the model back almost to the clean result.
+Broken data made the model worse than having no model because it learned each broken station's offset faithfully. Removing the flagged hours barely helped since most of the damage came from stations reading a degree or two off for months. What worked was finding the dates where a station's level shifted and correcting the stretch before it.
 
-## Turning it into a pipeline
+## Designing it for petabytes
 
-The notebooks worked but I wanted to know what it takes to run the same thing as a real pipeline that can be rerun safely and kept up to date. Each piece of work became a small unit keyed by source and time such as one station-year and it writes its output atomically. A manifest records every unit with a fingerprint of its input file and the version of the code that processed it. With that in place a rerun with nothing changed does nothing, a changed input is redone on its own and the backfill and the incremental update share one plan.
+My data is a few GB. I wanted to think through how the same pipeline would work if it had to take in every radar, station and model run in the country with years of history behind them. I haven't run anything at that scale so this is how I'd expect to build it and where I'm unsure. It follows one radar file from the moment it lands to the moment a model reads it.
 
-I then ran the same units in three frameworks to see what each one is built for. Ray ran them as tasks about four times faster than a single process and its actors were a natural place to keep one open connection per worker. Spark showed me that comparing each station with its neighbours becomes a join with three shuffles once the data is split across machines even though it's a single line in pandas. Beam showed me what late data does. A reading that arrives after its day was already judged makes that day fire again with a complete new result which only works if downstream writes are keyed by station and day and simply overwrite.
-
-The same thing turned out to happen to the verdicts. When I replayed the checks month by month the way a live system would have run them, 1.7% of verdicts changed once more data had arrived and most of those went from pass to suspect. Verdicts made early in a record are judged against a seasonal baseline that's still being learned which is why verdicts need versions just like the data does.
-
-## At petabyte scale
-
-My data is a few GB. NOAA puts more than 30 PB on public clouds and ECMWF's archive holds about 450 PB mostly on tape. I wanted to understand what actually changes at that size and the short answer is that nothing is ever loaded whole.
-
-### How it's stored
-
-The shape of the data decides the storage. Station data is many short time series that suit columnar files like Parquet. Model output and reanalysis are large regular grids that suit **Zarr** where one n-dimensional array is cut into chunks and each chunk is its own object in a bucket. Radar is a tree of polar sweeps and the newer FM-301 standard stores that as Zarr too.
-
-Archives like ECMWF's MARS keep the original format and index it. You ask for a parameter, date and level and the system works out where it lives on disk or tape. Cloud copies are rewritten as analysis-ready Zarr the way [ARCO-ERA5](https://github.com/google-research/ARCO-ERA5) and WeatherBench 2 are. Two newer tools avoid copying at all. [VirtualiZarr](https://virtualizarr.readthedocs.io/) indexes existing GRIB or NetCDF files once and serves them as Zarr without moving a byte and [Icechunk](https://icechunk.io/) adds git-like snapshots so a dataset can be appended to without readers seeing half-written data.
-
-### How it's analyzed
-
-Analyzing petabytes works the same way at any size. The data is already split into chunks and a cluster of hundreds of machines works on them in parallel. Each machine reads only its own chunks and reduces them to something small like a mean or a count before moving on so its memory never holds more than a few chunks at once. Only those small results get combined and only the final answer comes back to the notebook.
-
-On Spark's original clusters each task ran on the machine whose disk already held its block of data. That's where "move the compute to the data" comes from. In the cloud the data lives in object storage that's separate from the machines. There the same idea means running the cluster in the same region as the bucket and never pulling raw data down to a laptop. From a notebook you open the data lazily and describe the slice you want and only the chunks that hold that slice move.
-
-```python
-import xarray as xr
-ds = xr.open_zarr("gs://gcp-public-data-arco-era5/ar/full_37-1h-0p25deg-chunk-1.zarr-v3",
-                  chunks=None, storage_options={"token": "anon"})          # metadata only
-t = ds["2m_temperature"].sel(latitude=37.4, longitude=237.9, method="nearest")
-t.sel(time=slice("2023-01-01", "2023-01-02")).load()                     # bytes move here
-```
-
-Opening that store took 6 seconds on my laptop and reading two days at one point took 14 seconds. This copy stores one hour of the whole globe per chunk so each hour is a separate read. I wanted to see how much the chunk shape matters so I took four years of HRRR over California that's 27 GB of values and 7.4 GB as compressed Zarr and stored it twice. One copy has map-shaped chunks and the other has time-series-shaped chunks.
-
-| Read | Map-shaped chunks | Time-series chunks |
-|---|---|---|
-| One map | 0.02 s | 7.7 s |
-| Four years at one place | 7.0 s | 0.04 s |
-
-The data and the disk are the same and the difference is 200 to 450 times. That's why large producers keep the same data in more than one layout and pick the chunk shape for the main reader.
-
-Converting between the two layouts is a rechunk which is the array version of a shuffle. My first attempt used Apache Beam's local runner and ran the laptop out of memory since one week of data alone peaked at 3.3 GB. What worked was going through an intermediate layout on disk the way the [rechunker](https://rechunker.readthedocs.io/en/latest/algorithm.html) library does it and that never used more than 2 GB for the whole 27 GB. After that I measured every heavy step on a small slice first and ran it under a hard memory cap.
-
-### The hard parts
-
-These are the problems I'd expect anyone running this at scale to face. Several of them are covered in Martin Kleppmann's *Designing Data-Intensive Applications*.
-
-- **Time.** Event time and arrival time differ, station clocks drift and some ocean moorings deliver their data months late. Late data can be counted and dropped or published as a correction and I chose corrections.
-- **Reprocessing is normal.** A new QA rule means rerunning years of data so every step has to be idempotent and recomputable from raw.
-- **Formats change.** Model upgrades, new GRIB tables and replaced sensors all change the data under you.
-- **Hot spots and skew.** Everyone reads the newest forecast the minute it lands and a storm day of radar is ten times a calm one.
-- **Small files.** NEXRAD alone writes about 40,000 files a day and per-file overhead dominates unless files are batched or stored as chunks of one array.
-- **Neighbour checks don't shard.** Hourly checks parallelize easily but anything comparing stations needs data from many places at the same time and that means a shuffle.
-- **Provenance.** Measured, model-filled and repaired values need to stay distinguishable all the way to the model.
-
-## Architecture
-
-The idea from Kleppmann's book that helped me most is the split between a **system of record** and **derived data**. The raw files are the record and nothing ever edits them. Everything else is derived from them and could be deleted and rebuilt. The derived views are also where the work done when data arrives meets the work done when someone asks for it and choosing their shape is choosing how much of each to do.
+### Getting data in
 
 <figure class="wide">
-<svg class="fig" viewBox="0 0 640 600" role="img" aria-label="Architecture. Raw files from four sources are the system of record. One write path with a manifest turns them into derived views: a station table with verdicts, model values at stations, two Zarr layouts of the model grid, rain at stations and monitoring metrics. Training, analysis, QA and monitoring each read the view shaped for them. A band underneath lists how the pipeline is verified.">
-<defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ahead"/></marker></defs>
-<text x="6" y="16" class="colhead">SYSTEM OF RECORD</text>
-<text x="6" y="30" class="tick">raw, never edited</text>
-<text x="160" y="16" class="colhead">WRITE PATH</text>
-<text x="160" y="30" class="tick">runs when data lands</text>
-<text x="306" y="16" class="colhead">DERIVED VIEWS</text>
-<text x="306" y="30" class="tick">where writes meet reads</text>
-<text x="498" y="16" class="colhead">READ PATH</text>
-<text x="498" y="30" class="tick">runs when asked</text>
-<rect x="6" y="44" width="138" height="92" rx="6" class="node store"/>
-<text x="15" y="61" class="ntitle sm">Stations</text>
-<text x="15" y="75" class="nsize">11 GB</text>
-<text x="15" y="88" class="nline sm">ISD text, one file</text>
-<text x="15" y="101" class="nline sm">per station-year</text>
-<path d="M146,90 L158,90" class="edge" marker-end="url(#ah3)"/>
-<rect x="6" y="152" width="138" height="92" rx="6" class="node store"/>
-<text x="15" y="169" class="ntitle sm">Weather model</text>
-<text x="15" y="183" class="nline sm">HRRR GRIB2, two</text>
-<text x="15" y="196" class="nline sm">fields read by</text>
-<text x="15" y="209" class="nline sm">byte range</text>
-<path d="M146,198 L158,198" class="edge" marker-end="url(#ah3)"/>
-<rect x="6" y="260" width="138" height="92" rx="6" class="node store"/>
-<text x="15" y="277" class="ntitle sm">Radar</text>
-<text x="15" y="291" class="nsize">18 GB</text>
-<text x="15" y="304" class="nline sm">NEXRAD Level II</text>
-<text x="15" y="317" class="nline sm">2,202 volumes</text>
-<path d="M146,306 L158,306" class="edge" marker-end="url(#ah3)"/>
-<rect x="6" y="368" width="138" height="92" rx="6" class="node store"/>
-<text x="15" y="385" class="ntitle sm">Rain mosaic</text>
-<text x="15" y="399" class="nsize">35 GB</text>
-<text x="15" y="412" class="nline sm">MRMS GRIB2</text>
-<text x="15" y="425" class="nline sm">69,983 hourly files</text>
-<path d="M146,414 L158,414" class="edge" marker-end="url(#ah3)"/>
-<rect x="160" y="44" width="130" height="416" rx="6" class="node"/>
-<text x="169" y="61" class="ntitle sm">One plan</text>
-<text x="169" y="75" class="nline sm">backfill and live</text>
-<text x="169" y="88" class="nline sm">share the code</text>
-<text x="169" y="101" class="nline sm"></text>
-<text x="169" y="114" class="nline sm">unit: source × time</text>
-<text x="169" y="127" class="nline sm"></text>
-<text x="169" y="140" class="nline sm">manifest records</text>
-<text x="169" y="153" class="nline sm">input fingerprint</text>
-<text x="169" y="166" class="nline sm">and code version</text>
-<text x="169" y="179" class="nline sm"></text>
-<text x="169" y="192" class="nline sm">writes are atomic</text>
-<text x="169" y="205" class="nline sm"></text>
-<text x="169" y="218" class="nline sm">late data or a fix:</text>
-<text x="169" y="231" class="nline sm">rerun those units,</text>
-<text x="169" y="244" class="nline sm">publish new version</text>
-<text x="169" y="257" class="nline sm"></text>
-<text x="169" y="270" class="nline sm">Ray, Spark or Beam</text>
-<text x="169" y="283" class="nline sm">schedule the units</text>
-<rect x="306" y="44" width="176" height="74" rx="6" class="node"/>
-<text x="315" y="61" class="ntitle sm">Station table</text>
-<text x="315" y="75" class="nsize">277 MB Parquet</text>
-<text x="315" y="88" class="nline sm">flags and verdict</text>
-<text x="315" y="101" class="nline sm">beside each value</text>
-<path d="M292,81.0 L304,81.0" class="edge" marker-end="url(#ah3)"/>
-<rect x="498" y="44" width="136" height="74" rx="6" class="node"/>
-<text x="507" y="61" class="ntitle sm">QA and research</text>
-<text x="507" y="75" class="nline sm">filter by verdict,</text>
-<text x="507" y="88" class="nline sm">station or storm</text>
-<path d="M484,81.0 L496,81.0" class="edge" marker-end="url(#ah3)"/>
-<rect x="306" y="126" width="176" height="60" rx="6" class="node"/>
-<text x="315" y="143" class="ntitle sm">Model at stations</text>
-<text x="315" y="157" class="nsize">114 MB Parquet</text>
-<text x="315" y="170" class="nline sm">the reference</text>
-<path d="M292,156.0 L304,156.0" class="edge" marker-end="url(#ah3)"/>
-<rect x="306" y="194" width="176" height="60" rx="6" class="node"/>
-<text x="315" y="211" class="ntitle sm">Grid, training copy</text>
-<text x="315" y="225" class="nsize">6.9 GB Zarr</text>
-<text x="315" y="238" class="nline sm">chunks: 24 h × map</text>
-<path d="M292,224.0 L304,224.0" class="edge" marker-end="url(#ah3)"/>
-<rect x="498" y="194" width="136" height="60" rx="6" class="node"/>
-<text x="507" y="211" class="ntitle sm">Training</text>
-<text x="507" y="225" class="nline sm">one hour = 1 chunk</text>
-<text x="507" y="238" class="nline sm">version pinned</text>
-<path d="M484,224.0 L496,224.0" class="edge" marker-end="url(#ah3)"/>
-<rect x="306" y="262" width="176" height="60" rx="6" class="node"/>
-<text x="315" y="279" class="ntitle sm">Grid, analysis copy</text>
-<text x="315" y="293" class="nsize">9.0 GB Zarr</text>
-<text x="315" y="306" class="nline sm">chunks: 4 yr × 16²</text>
-<path d="M292,292.0 L304,292.0" class="edge" marker-end="url(#ah3)"/>
-<rect x="498" y="262" width="136" height="60" rx="6" class="node"/>
-<text x="507" y="279" class="ntitle sm">Analysis</text>
-<text x="507" y="293" class="nline sm">one place, 4 years</text>
-<text x="507" y="306" class="nline sm">= 1 chunk, 0.04 s</text>
-<path d="M484,292.0 L496,292.0" class="edge" marker-end="url(#ah3)"/>
-<rect x="306" y="330" width="176" height="60" rx="6" class="node"/>
-<text x="315" y="347" class="ntitle sm">Rain at stations</text>
-<text x="315" y="361" class="nsize">4.6 MB Parquet</text>
-<text x="315" y="374" class="nline sm">radar vs gauge</text>
-<path d="M292,360.0 L304,360.0" class="edge" marker-end="url(#ah3)"/>
-<rect x="306" y="398" width="176" height="62" rx="6" class="node"/>
-<text x="315" y="415" class="ntitle sm">Monitoring</text>
-<text x="315" y="429" class="nline sm">one row per</text>
-<text x="315" y="442" class="nline sm">monthly run</text>
-<path d="M292,429.0 L304,429.0" class="edge" marker-end="url(#ah3)"/>
-<rect x="498" y="398" width="136" height="62" rx="6" class="node"/>
-<text x="507" y="415" class="ntitle sm">Watching</text>
-<text x="507" y="429" class="nline sm">rates vs their</text>
-<text x="507" y="442" class="nline sm">own band → alert</text>
-<path d="M484,429.0 L496,429.0" class="edge" marker-end="url(#ah3)"/>
-<rect x="6" y="478" width="628" height="114" rx="6" class="node verify"/>
-<text x="16" y="498" class="ntitle sm">Trust, but verify</text>
-<text x="16" y="522" class="nline sm strongish">Recall</text>
-<text x="16" y="536" class="nline sm">planted faults</text>
-<text x="16" y="549" class="nline sm">with a key</text>
-<text x="140" y="522" class="nline sm strongish">Precision</text>
-<text x="140" y="536" class="nline sm">real alarms</text>
-<text x="140" y="549" class="nline sm">checked by hand</text>
-<text x="264" y="522" class="nline sm strongish">Second witness</text>
-<text x="264" y="536" class="nline sm">model vs station</text>
-<text x="264" y="549" class="nline sm">radar vs gauge</text>
-<text x="388" y="522" class="nline sm strongish">Rebuild from raw</text>
-<text x="388" y="536" class="nline sm">same input gives</text>
-<text x="388" y="549" class="nline sm">the same output</text>
-<text x="512" y="522" class="nline sm strongish">Versions</text>
-<text x="512" y="536" class="nline sm">old and new</text>
-<text x="512" y="549" class="nline sm">side by side</text>
-<text x="16" y="575" class="nline sm">Any derived view can be deleted and rebuilt from the system of record.</text>
+<svg class="fig" viewBox="0 0 640 400" role="img" aria-label="A new radar file lands in a public bucket. The bucket sends a new-object event into a queue. A backfill job puts events for past files into its own lower-priority queue. The planner reads each event, turns it into a unit keyed by radar and hour and checks the manifest to see whether that unit is already done.">
+<defs><marker id="ah6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="dhead"/></marker></defs>
+<path d="M18,47 L18,97 A35.0,7 0 0 0 88,97 L88,47" class="shape"/>
+<ellipse cx="53.0" cy="47" rx="35.0" ry="7" class="shape"/>
+<text x="53.0" y="120" class="dlabel" text-anchor="middle">NEXRAD bucket</text>
+<text x="53.0" y="134" class="dlabel" text-anchor="middle">on AWS</text>
+<rect x="170" y="58" width="110" height="28" class="shape"/>
+<line x1="192.0" y1="58" x2="192.0" y2="86" class="shape"/>
+<line x1="214.0" y1="58" x2="214.0" y2="86" class="shape"/>
+<line x1="236.0" y1="58" x2="236.0" y2="86" class="shape"/>
+<line x1="258.0" y1="58" x2="258.0" y2="86" class="shape"/>
+<text x="225" y="50" class="dlabel" text-anchor="middle">event queue</text>
+<path d="M92,72 L166,72" class="dedge" marker-end="url(#ah6)"/>
+<text x="129" y="64" class="dlabel strong" text-anchor="middle">new object</text>
+<rect x="340" y="50" width="100" height="44" rx="14" class="shape"/>
+<text x="390.0" y="77.0" class="dtitle" text-anchor="middle">Planner</text>
+<path d="M284,72 L336,72" class="dedge" marker-end="url(#ah6)"/>
+<path d="M540,47 L540,97 A35.0,7 0 0 0 610,97 L610,47" class="shape"/>
+<ellipse cx="575.0" cy="47" rx="35.0" ry="7" class="shape"/>
+<text x="575.0" y="120" class="dlabel" text-anchor="middle">manifest</text>
+<path d="M444,64 L536,64" class="dedge" marker-end="url(#ah6)"/>
+<text x="490" y="56" class="dlabel strong" text-anchor="middle">already done?</text>
+<path d="M536,82 L444,82" class="dedge" marker-end="url(#ah6)"/>
+<text x="490" y="96" class="dlabel" text-anchor="middle">no</text>
+<line x1="129" y1="78" x2="129" y2="150" class="dthin"/>
+<text x="18" y="166" class="dtitle sm">Event</text>
+<text x="18" y="183" class="dmono">bucket:</text>
+<text x="74" y="183" class="dmono">unidata-nexrad-level2</text>
+<text x="18" y="197" class="dmono">key:</text>
+<text x="74" y="197" class="dmono">.../KMUX20240205_101000_V06</text>
+<text x="18" y="211" class="dmono">size:</text>
+<text x="74" y="211" class="dmono">9.1 MB</text>
+<rect x="18" y="300" width="110" height="40" rx="14" class="shape"/>
+<text x="73.0" y="325.0" class="dtitle" text-anchor="middle">Backfill</text>
+<text x="73" y="356" class="dlabel" text-anchor="middle">lists 2021–2024</text>
+<rect x="170" y="306" width="110" height="28" class="shape"/>
+<line x1="192.0" y1="306" x2="192.0" y2="334" class="shape"/>
+<line x1="214.0" y1="306" x2="214.0" y2="334" class="shape"/>
+<line x1="236.0" y1="306" x2="236.0" y2="334" class="shape"/>
+<line x1="258.0" y1="306" x2="258.0" y2="334" class="shape"/>
+<text x="225" y="298" class="dlabel" text-anchor="middle">backfill queue</text>
+<path d="M132,320 L166,320" class="dedge" marker-end="url(#ah6)"/>
+<path d="M284,320 L330,320 L330,104 L346,96" class="dedge" marker-end="url(#ah6)"/>
+<text x="336" y="290" class="dlabel strong" text-anchor="start">lower priority</text>
+<line x1="390" y1="98" x2="390" y2="150" class="dthin"/>
+<text x="360" y="166" class="dtitle sm">Unit</text>
+<text x="360" y="183" class="dmono">source:</text>
+<text x="418" y="183" class="dmono">nexrad</text>
+<text x="360" y="197" class="dmono">radar:</text>
+<text x="418" y="197" class="dmono">KMUX</text>
+<text x="360" y="211" class="dmono">hour:</text>
+<text x="418" y="211" class="dmono">2024-02-05T10</text>
+<text x="360" y="225" class="dmono">code:</text>
+<text x="418" y="225" class="dmono">radar-v4</text>
+<text x="360" y="239" class="dmono">input:</text>
+<text x="418" y="239" class="dmono">fingerprint 9f3c…</text>
+<path d="M560,236 L612,236" class="dedge" marker-end="url(#ah6)"/>
+<text x="586" y="228" class="dlabel strong" text-anchor="middle">to workers</text>
+<line x1="540" y1="236" x2="556" y2="236" class="dthin"/>
+<text x="18" y="390" class="dlabel">About 160 radars × 10 volumes an hour ≈ 40,000 files a day.</text>
 </svg>
-<figcaption>The architecture with this project's real formats and sizes. Each read path uses the view shaped for it.</figcaption>
+<figcaption>A new radar file becomes a unit of work. Backfill takes its own lower-priority queue to the same planner.</figcaption>
 </figure>
 
-Reading the diagram left to right shows the choices. The write path is one plan for both history and new data so there's no second code path to drift out of sync. The two Zarr copies are the same numbers shaped for two different readers which is the 200 to 450 times difference above. The verdicts sit beside the values in the station table instead of replacing them so anyone can choose a different strictness. The band at the bottom is how I know any of it is right. Recall and precision check the checks, a second source checks each sensor and rebuilding from raw checks the pipeline itself.
+Each of the roughly 160 US radars writes a new file every 4 to 10 minutes into NOAA's public bucket on AWS. The bucket announces every new file as a notification so nothing has to poll for it. I'd point those notifications at a queue that sits between files arriving and files being processed. When a storm triples the rate of files the queue just gets longer for a while instead of overwhelming the workers. A message that fails can be retried.
+
+A planner reads from the queue and groups files into units of work. For radar a unit might be one radar for one hour. Before running a unit the planner asks the manifest whether it has already been done. The manifest is a small database table with one row per unit. It records which input files the unit used, which version of the code ran it, whether it finished and where its output went. If the same unit already finished with the same inputs and code it's skipped and that makes a file announced twice harmless. When the code changes the manifest also says exactly which units have to run again.
+
+Workers pick up the units, read the files straight from the bucket and write their output. They'd run in the same region as the bucket so reading is fast and cheap. History goes in the same way. A backfill job lists the old files and sends the same kind of messages so four years of history runs through exactly the same code as a file that landed a minute ago. I think it needs its own lower-priority queue though. Otherwise a four-year backfill would sit in front of live data for days.
+
+### Laying it out
+
+<figure class="wide">
+<svg class="fig" viewBox="0 0 640 420" role="img" aria-label="Raw files stay untouched. A worker turns each one into rows in a Parquet table partitioned by year and station and, for model grids, into Zarr chunks of 24 hours by a map tile. A sample station-hour row shows the value, NOAA's quality code and the original report time.">
+<defs><marker id="ah7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="dhead"/></marker></defs>
+<text x="6" y="18" class="colhead" text-anchor="start">STATIONS</text>
+<path d="M6,34 L48,34 L58,44 L58,98 L6,98 Z" class="shape"/>
+<path d="M48,34 L48,44 L58,44" class="shape"/>
+<text x="6" y="114" class="dmono" text-anchor="start">raw/isd/2024/</text>
+<text x="6" y="128" class="dmono" text-anchor="start">72290023188.csv</text>
+<rect x="146" y="46" width="112" height="40" rx="14" class="shape"/>
+<text x="202.0" y="71.0" class="dtitle" text-anchor="middle">Standardize</text>
+<path d="M62,66 L142,66" class="dedge" marker-end="url(#ah7)"/>
+<text x="102" y="58" class="dlabel strong" text-anchor="middle">one unit</text>
+<path d="M346,41 L346,91 A37.0,7 0 0 0 420,91 L420,41" class="shape"/>
+<ellipse cx="383.0" cy="41" rx="37.0" ry="7" class="shape"/>
+<text x="383" y="114" class="dmono" text-anchor="middle">standardized/</text>
+<text x="383" y="128" class="dmono" text-anchor="middle">year=2024/</text>
+<text x="383" y="142" class="dmono" text-anchor="middle">72290023188.parquet</text>
+<path d="M262,66 L342,66" class="dedge" marker-end="url(#ah7)"/>
+<text x="302" y="58" class="dlabel strong" text-anchor="middle">atomic write</text>
+<line x1="420" y1="66" x2="452" y2="66" class="dthin"/>
+<text x="456" y="30" class="dtitle sm" text-anchor="start">One row</text>
+<text x="456" y="47" class="dmono" text-anchor="start">station:</text>
+<text x="536" y="47" class="dmono" text-anchor="start">72290023188</text>
+<text x="456" y="61" class="dmono" text-anchor="start">time:</text>
+<text x="536" y="61" class="dmono" text-anchor="start">2024-01-01T01Z</text>
+<text x="456" y="75" class="dmono" text-anchor="start">temp:</text>
+<text x="536" y="75" class="dmono" text-anchor="start">14.4 °C</text>
+<text x="456" y="89" class="dmono" text-anchor="start">dew point:</text>
+<text x="536" y="89" class="dmono" text-anchor="start">8.9 °C</text>
+<text x="456" y="103" class="dmono" text-anchor="start">NOAA code:</text>
+<text x="536" y="103" class="dmono" text-anchor="start">5</text>
+<text x="456" y="117" class="dmono" text-anchor="start">reported:</text>
+<text x="536" y="117" class="dmono" text-anchor="start">00:51Z, FM-15</text>
+<text x="6" y="176" class="dlabel" text-anchor="start">Partitioned by year then station: a year of ~3,000 US stations is ~3,000 files,</text>
+<text x="6" y="191" class="dlabel" text-anchor="start">not millions of tiny ones.</text>
+<line x1="6" y1="206" x2="634" y2="206" class="dthin"/>
+<text x="6" y="230" class="colhead" text-anchor="start">GRIDS</text>
+<path d="M6,248 L48,248 L58,258 L58,312 L6,312 Z" class="shape"/>
+<path d="M48,248 L48,258 L58,258" class="shape"/>
+<text x="6" y="328" class="dmono" text-anchor="start">HRRR GRIB2,</text>
+<text x="6" y="342" class="dmono" text-anchor="start">one file an hour</text>
+<rect x="146" y="260" width="112" height="40" rx="14" class="shape"/>
+<text x="202.0" y="285.0" class="dtitle" text-anchor="middle">Rechunk</text>
+<path d="M62,280 L142,280" class="dedge" marker-end="url(#ah7)"/>
+<text x="102" y="272" class="dlabel strong" text-anchor="middle">a month</text>
+<path d="M346,277.5 L416,277.5 L416,347.5 L346,347.5 Z" class="shape"/>
+<path d="M346,277.5 L377.5,246 L447.5,246 L416,277.5" class="shape"/>
+<path d="M416,277.5 L447.5,246 L447.5,316 L416,347.5" class="shape"/>
+<path d="M346,277.5 L354.4,277.5 L354.4,347.5 L346,347.5 Z" class="hl"/>
+<path d="M262,280 L342,280" class="dedge" marker-end="url(#ah7)"/>
+<text x="302" y="272" class="dlabel strong" text-anchor="middle">write region</text>
+<text x="384" y="362" class="dmono" text-anchor="middle">grids/t2m.zarr</text>
+<text x="456" y="250" class="dtitle sm" text-anchor="start">One chunk</text>
+<text x="456" y="267" class="dmono" text-anchor="start">shape:</text>
+<text x="528" y="267" class="dmono" text-anchor="start">24h×512×512</text>
+<text x="456" y="281" class="dmono" text-anchor="start">size:</text>
+<text x="528" y="281" class="dmono" text-anchor="start">≈ 25 MB</text>
+<text x="456" y="295" class="dmono" text-anchor="start">per year:</text>
+<text x="528" y="295" class="dmono" text-anchor="start">≈ 4,400</text>
+<text x="456" y="309" class="dmono" text-anchor="start"></text>
+<text x="528" y="309" class="dmono" text-anchor="start">per variable</text>
+<text x="6" y="392" class="dlabel" text-anchor="start">The US grid is 1,799 × 1,059 points so one day of one variable is 12 tiles:</text>
+<text x="6" y="407" class="dlabel" text-anchor="start">big enough for object storage and small enough to read on its own.</text>
+</svg>
+<figcaption>Raw files stay as delivered. Points become a partitioned table and grids become chunks.</figcaption>
+</figure>
+
+What a worker writes depends on the shape of the data. A station file becomes rows in a table. Each row is one station-hour with the value in SI units and UTC along with NOAA's quality code and the time the report was really taken. The table is stored as Parquet in a folder per year with one file per station inside it. A year of about 3,000 US stations is then one folder of about 3,000 files with thousands of rows each. That keeps common questions to a few files and avoids millions of tiny ones.
+
+Model grids go into Zarr. Zarr is a format for large arrays that cuts an array into chunks and stores each chunk as its own compressed object, with a small JSON file describing the whole array. For HRRR I'd try chunks of one day by a 512 × 512 tile (about 25 MB each). That should be big enough for object storage to handle efficiently and small enough to fetch on its own. The raw files are never edited so every one of these layers can be rebuilt from them if a rule or a bug changes.
+
+### When data arrives late
+
+<figure class="wide">
+<svg class="fig" viewBox="0 0 640 330" role="img" aria-label="A QA run on 3 January judges an hour as pass with three of five neighbours reported and training run A uses it. Two days later the late neighbour files arrive, the neighbour check reruns and the 5 January run marks the same hour suspect. Training run B uses that one. Both stay reproducible.">
+<defs><marker id="ah8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="dhead"/></marker></defs>
+<text x="6" y="26" class="dtitle sm" text-anchor="start">QA run on 3 Jan</text>
+<text x="6" y="43" class="dmono" text-anchor="start">station:</text>
+<text x="102" y="43" class="dmono" text-anchor="start">72290993115</text>
+<text x="6" y="57" class="dmono" text-anchor="start">hour:</text>
+<text x="102" y="57" class="dmono" text-anchor="start">2024-01-02T08Z</text>
+<text x="6" y="71" class="dmono" text-anchor="start">neighbours:</text>
+<text x="102" y="71" class="dmono" text-anchor="start">3 of 5 reported</text>
+<text x="6" y="85" class="dmono" text-anchor="start">verdict:</text>
+<text x="102" y="85" class="dmono" text-anchor="start">pass</text>
+<path d="M276,37 L276,79 A32.0,7 0 0 0 340,79 L340,37" class="shape"/>
+<ellipse cx="308.0" cy="37" rx="32.0" ry="7" class="shape"/>
+<text x="308.0" y="102" class="dlabel" text-anchor="middle">qa/ runs</text>
+<path d="M214,56 L272,56" class="dedge" marker-end="url(#ah8)"/>
+<text x="420" y="26" class="dtitle sm" text-anchor="start">QA run on 5 Jan</text>
+<text x="420" y="43" class="dmono" text-anchor="start">station:</text>
+<text x="516" y="43" class="dmono" text-anchor="start">72290993115</text>
+<text x="420" y="57" class="dmono" text-anchor="start">hour:</text>
+<text x="516" y="57" class="dmono" text-anchor="start">2024-01-02T08Z</text>
+<text x="420" y="71" class="dmono" text-anchor="start">neighbours:</text>
+<text x="516" y="71" class="dmono" text-anchor="start">5 of 5 reported</text>
+<text x="420" y="85" class="dmono" text-anchor="start">verdict:</text>
+<text x="516" y="85" class="dmono" text-anchor="start">suspect</text>
+<path d="M416,56 L344,56" class="dedge" marker-end="url(#ah8)"/>
+<path d="M285,160 L321,160 L331,170 L331,216 L285,216 Z" class="shape"/>
+<path d="M321,160 L321,170 L331,170" class="shape"/>
+<text x="308" y="234" class="dlabel" text-anchor="middle">late neighbour files</text>
+<path d="M308,156 L308,108" class="dedge" marker-end="url(#ah8)"/>
+<text x="316" y="138" class="dlabel strong" text-anchor="start">rerun the neighbour check</text>
+<circle cx="70" cy="156" r="7" class="shape"/>
+<path d="M70,163 L70,186 M59,172 L81,172 M70,186 L61,202 M70,186 L79,202" class="dedge"/>
+<text x="70" y="218" class="dlabel" text-anchor="middle">training run A</text>
+<text x="70" y="232" class="dlabel" text-anchor="middle">uses the 3 Jan run</text>
+<circle cx="560" cy="156" r="7" class="shape"/>
+<path d="M560,163 L560,186 M549,172 L571,172 M560,186 L551,202 M560,186 L569,202" class="dedge"/>
+<text x="560" y="218" class="dlabel" text-anchor="middle">training run B</text>
+<text x="560" y="232" class="dlabel" text-anchor="middle">uses the 5 Jan run</text>
+<path d="M70,150 L70,100" class="dedge dash" marker-end="url(#ah8)"/>
+<path d="M560,150 L560,100" class="dedge dash" marker-end="url(#ah8)"/>
+<text x="6" y="296" class="dlabel" text-anchor="start">Nothing is overwritten. Each QA run is written beside the last one</text>
+<text x="6" y="311" class="dlabel" text-anchor="start">so both models can be traced to the exact verdicts they trained on.</text>
+</svg>
+<figcaption>Late neighbour files change a verdict. Both QA runs survive.</figcaption>
+</figure>
+
+From what I read not everything arrives on time. Some ocean buoys are only read when a ship visits and NOAA notes that values and their quality flags in its station archive can change as late data comes in ([GHCN-Daily](https://webarchive.library.unt.edu/web/20201218051500/https://www.ncdc.noaa.gov/ghcn-daily-description)). I'm not sure how often that happens for the stations I used. If it does it matters most for checks that compare a station with its neighbours. A QA run on 3 January might judge an hour when only three of five neighbours have reported and call it a pass. Once the other two arrive the comparison changes and the run on 5 January marks the same hour suspect. When I replayed my own checks month by month (notebook 06) 1.7% of verdicts changed like this. So I wouldn't overwrite QA results. Each run writes its results beside the last one and each training run records which QA run it used. A model can then always be traced back to the exact verdicts it trained on.
+
+### Reading it back
+
+<figure class="wide">
+<svg class="fig" viewBox="0 0 640 290" role="img" aria-label="A training job reads one hour across the whole map from the map-chunked copy in one chunk. An analyst reads four years at one place from the time-series copy in one chunk. Reading each from the other copy would touch hundreds of chunks.">
+<defs><marker id="ah9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="dhead"/></marker></defs>
+<circle cx="44" cy="50" r="7" class="shape"/>
+<path d="M44,57 L44,80 M33,66 L55,66 M44,80 L35,96 M44,80 L53,96" class="dedge"/>
+<text x="44" y="112" class="dlabel" text-anchor="middle">training job</text>
+<text x="110" y="58" class="dlabel strong" text-anchor="middle">one hour</text>
+<path d="M66,72 L162,72" class="dedge" marker-end="url(#ah9)"/>
+<text x="110" y="92" class="dmono" text-anchor="middle">1 chunk</text>
+<text x="110" y="106" class="dmono" text-anchor="middle">0.02 s</text>
+<path d="M170,72.0 L250,72.0 L250,152.0 L170,152.0 Z" class="shape"/>
+<path d="M170,72.0 L206.0,36 L286.0,36 L250,72.0" class="shape"/>
+<path d="M250,72.0 L286.0,36 L286.0,116 L250,152.0" class="shape"/>
+<path d="M170,72.0 L179.6,72.0 L179.6,152.0 L170,152.0 Z" class="hl"/>
+<text x="226" y="172" class="dlabel" text-anchor="middle">map-shaped chunks</text>
+<path d="M380,72.0 L460,72.0 L460,152.0 L380,152.0 Z" class="shape"/>
+<path d="M380,72.0 L416.0,36 L496.0,36 L460,72.0" class="shape"/>
+<path d="M460,72.0 L496.0,36 L496.0,116 L460,152.0" class="shape"/>
+<path d="M380,104.0 L460,104.0 L460,115.2 L380,115.2 Z" class="hl"/>
+<text x="436" y="172" class="dlabel" text-anchor="middle">time-series chunks</text>
+<circle cx="610" cy="50" r="7" class="shape"/>
+<path d="M610,57 L610,80 M599,66 L621,66 M610,80 L601,96 M610,80 L619,96" class="dedge"/>
+<text x="610" y="112" class="dlabel" text-anchor="middle">analyst</text>
+<text x="552" y="44" class="dlabel strong" text-anchor="middle">4 years at</text>
+<text x="552" y="58" class="dlabel strong" text-anchor="middle">one place</text>
+<path d="M588,72 L500,72" class="dedge" marker-end="url(#ah9)"/>
+<text x="552" y="92" class="dmono" text-anchor="middle">1 chunk</text>
+<text x="552" y="106" class="dmono" text-anchor="middle">0.04 s</text>
+<text x="330" y="204" class="dlabel strong" text-anchor="middle">from the other copy</text>
+<text x="330" y="220" class="dmono" text-anchor="middle">783 chunks · 7.7 s  /  1,461 chunks · 7.0 s</text>
+<text x="6" y="256" class="dlabel" text-anchor="start">Both copies hold the same numbers. Each reader gets the layout that makes its question one read</text>
+<text x="6" y="272" class="dlabel" text-anchor="start">and the work runs in the same cloud region as the bucket so only answers leave it.</text>
+</svg>
+<figcaption>The same numbers in two layouts. Each reader's question is one read in its own copy.</figcaption>
+</figure>
+
+Different readers ask different questions. A training job reads whole maps one hour at a time while an analyst might want four years at a single place. With chunks shaped like maps the training job's hour is one chunk but the analyst's four years is over a thousand. With chunks shaped like long time series it's the other way round. I measured this on four years of HRRR over California stored both ways and the difference was 200 to 450 times for the same data on the same disk. So I'd keep a copy for each kind of reader. Either way nothing gets loaded whole. A cluster in the same region as the bucket reads only the chunks a question needs and reduces them to something small like a mean before sending it back.
+
+There's a lot here I'm still learning. I don't know yet when a day of data should count as final, how to tell a quiet format change at the source from a real change in the weather or how fast chunked data can be shuffled to keep a training job busy.
 
 ## What I took away
 
-I started out thinking of data quality as a cleaning step and I ended up thinking of it as a claim about the data that should be measured like a model, with recall on known faults, precision on real flags and its effect on what's trained downstream. The faults that hurt most were the quiet ones. A second independent source like a weather model or a radar caught what a sensor couldn't show about itself and keeping track of where every value came from mattered as much as the value.
+Every number in this project had a reason behind it that lived in the domain: why a station runs warm, why radar misses the rain under its beam, why a verdict changes a month later. I keep running into how much there is to know before the data makes sense and each answer opened two more questions. That's the part I want to keep going deeper on, both the science of these natural systems and how to engineer for them.
 
 ## The notebooks
 
@@ -325,4 +376,4 @@ I started out thinking of data quality as a cleaning step and I ended up thinkin
 | 10 | [Radar vs gauges](https://github.com/conscioustahoe/weather-data-lab/blob/main/notebooks/10-radar-vs-gauges.ipynb) | when do two rain sensors disagree and why? |
 | 11 | [Gridded data at scale](https://github.com/conscioustahoe/weather-data-lab/blob/main/notebooks/11-gridded-data-at-scale.ipynb) | what does chunk shape cost? |
 
-<p class="caption">Sources: NOAA <a href="https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database">ISD</a>, <a href="https://registry.opendata.aws/noaa-hrrr-pds/">HRRR</a>, <a href="https://registry.opendata.aws/noaa-nexrad/">NEXRAD</a> and <a href="https://registry.opendata.aws/noaa-mrms-pds/">MRMS</a> on AWS · Orbuch, <a href="https://naturalgeneralintelligence.ai/">Natural General Intelligence</a> · Rasp et al., <a href="https://arxiv.org/abs/2308.15560">WeatherBench 2</a> · ECMWF, <a href="https://www.ecmwf.int/node/31124">The living archive</a> · <a href="https://github.com/google-research/ARCO-ERA5">ARCO-ERA5</a> · <a href="https://rechunker.readthedocs.io/en/latest/algorithm.html">rechunker</a> · Kleppmann, <em>Designing Data-Intensive Applications</em> (O'Reilly, 2017).</p>
+<p class="caption">Sources: NOAA <a href="https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database">ISD</a>, <a href="https://registry.opendata.aws/noaa-hrrr-pds/">HRRR</a>, <a href="https://registry.opendata.aws/noaa-nexrad/">NEXRAD</a> and <a href="https://registry.opendata.aws/noaa-mrms-pds/">MRMS</a> on AWS · Orbuch, <a href="https://naturalgeneralintelligence.ai/">Natural General Intelligence</a> · Rasp et al., <a href="https://arxiv.org/abs/2308.15560">WeatherBench 2</a> · <a href="https://www.weather.gov/asos/FAQ.html">NWS ASOS</a> · <a href="https://herbie.readthedocs.io/en/stable/user_guide/background/model-info/hrrr.html">HRRR run lengths</a> · <a href="https://rechunker.readthedocs.io/en/latest/algorithm.html">rechunker</a>.</p>
