@@ -4,16 +4,6 @@ template = "index.html"
 
 # Rows under Work. `role` is shown after the name in the muted color.
 [[extra.work]]
-years = "Now"
-name = "Graft"
-role = "post-training language models compressed from 16-bit to 1-bit and ternary weights using SFT, DPO and GRPO to recover the tool-calling ability that compression costs them"
-
-[[extra.work]]
-years = "Now"
-name = "Suvin"
-role = "an agentic platform for everything after code is written (review, testing, deploys, observability and incident fixes) with the orchestrator in the cloud and agents inside the user’s own network"
-
-[[extra.work]]
 years = "2024 to now"
 name = "Root"
 role = "founding engineer and engineering lead"
@@ -42,6 +32,6 @@ label = "Neuromatch"
 text = "Multi-agent reinforcement learning on predators and prey, each trying to survive and grow"
 +++
 
-I'm a distributed systems engineer building real-time payments infrastructure at Root, where I was the first engineer. Before that I was a founding engineer at Gamma (acquired by Palo Alto Networks). In the past I've also done research on reconstructing what people see from brain activity, and co-authored MindEye2 (ICML 2024). Lately I'm working on Suvin and Graft.
+I'm a distributed systems engineer building real-time payments infrastructure at Root, where I was the first engineer. Before that I was a founding engineer at Gamma (acquired by Palo Alto Networks). In the past I've also done research on reconstructing what people see from brain activity, and co-authored MindEye2 (ICML 2024).
 
 Outside of work I boulder and watch a lot of movies. I also keep a [bookshelf](@/bookshelf.md) of what I've been reading.
